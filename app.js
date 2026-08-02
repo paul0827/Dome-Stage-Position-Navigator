@@ -1332,7 +1332,7 @@
 
       // Draw coordinate label under the node
       if (pt.coord && pt.coord.text) {
-        const labelText = `${pt.index + 1}. ${pt.coord.text}`;
+        const labelText = pt.coord.text;
         const bgWidth = (labelText.length * 5.2 + 6) * 0.625;
         const bgHeight = 6.875;
         const labelY = pt.pos.y + size / 2 + 6.5;
