@@ -1,4 +1,4 @@
-// Globally unified lyrics/chant progress for each of the 6 steps
+﻿// Globally unified lyrics/chant progress for each of the 6 steps
 const chantLyrics = {
   "basic": [],
   "circle": [
@@ -100,3 +100,4 @@ const chantLyrics = {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = chantLyrics;
 }
+

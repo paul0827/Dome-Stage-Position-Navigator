@@ -119,14 +119,17 @@
 
   // Mapped display sticker assets key mapping
   function getDisplayType(key) {
-    if (key === 'miLuo' || key === 'humanities1') {
+    if (key === 'miLuo') {
       return 'basic';
     }
     if (key === 'boneDonation') {
       return 'bigV';
     }
     if (key === 'edu') {
-      return 'eduWaterSlash';
+      return 'circle';
+    }
+    if (key === 'humanities1') {
+      return 'basic';
     }
     if (key === 'humanities2') {
       return 'humanities';
@@ -766,7 +769,7 @@
         selectFormation(idx);
       });
 
-      if (idx < 12) {
+      if (idx < 9) {
         if (listPart1) listPart1.appendChild(itemRow);
         else if (singleList) singleList.appendChild(itemRow);
       } else {
@@ -1086,8 +1089,10 @@
 
       // Watermark labels
       drawFloatingLabel('乙舞台', centerLineX, 38);
-      drawFloatingLabel('舞台中線', centerLineX, 38 - 14);
-      drawFloatingLabel('舞台中線', centerLineX, 38 + 14);
+
+      // Master label shifted backwards (+12) relative to starting point Y level on stage center line
+      let masterY = homeCoord.y + 12;
+      drawMasterLabel('法師區', centerLineX, masterY);
     }
 
     function drawFloatingLabel(text, gridX, gridY) {
@@ -1110,6 +1115,32 @@
       txt.setAttribute('y', pt_svg.y + 3);
       txt.setAttribute('class', 'watermark-text');
       txt.setAttribute('style', 'fill: #0f172a; font-size: 8px; font-weight: bold; text-anchor: middle;');
+      txt.textContent = text;
+      wmkGroup.appendChild(txt);
+    }
+
+    function drawMasterLabel(text, gridX, gridY) {
+      const dx_rel = gridX - homeCoord.x;
+      const dy_rel = gridY - homeCoord.y;
+      const pt_svg = gridToSvg(dx_rel, dy_rel);
+      
+      const w = 48;
+      const h = 17;
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', pt_svg.x - w / 2);
+      rect.setAttribute('y', pt_svg.y - h / 2);
+      rect.setAttribute('width', w);
+      rect.setAttribute('height', h);
+      rect.setAttribute('rx', 4);
+      rect.setAttribute('ry', 4);
+      rect.setAttribute('style', 'fill: #fef3c7; stroke: #d97706; stroke-width: 1px; fill-opacity: 0.95;');
+      wmkGroup.appendChild(rect);
+      
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', pt_svg.x);
+      txt.setAttribute('y', pt_svg.y + 3.2);
+      txt.setAttribute('class', 'watermark-text');
+      txt.setAttribute('style', 'fill: #92400e; font-size: 8.5px; font-weight: 800; text-anchor: middle;');
       txt.textContent = text;
       wmkGroup.appendChild(txt);
     }
@@ -1255,6 +1286,13 @@
       }
     }
 
+    // Create dedicated topmost layer for coordinate labels so stickers never obscure them
+    const pathLabelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    pathLabelsGroup.setAttribute('id', 'localPathLabels');
+    contentGroup.appendChild(pathLabelsGroup);
+
+    const labelsToAppend = [];
+
     // 5. Draw Performer Nodes (Sticker Icons)
     pointsToDraw.forEach(pt => {
       // Render node only if current, prev, or full trajectory is on
@@ -1330,23 +1368,28 @@
         }
       }
 
-      // Draw coordinate label under the node
-      if (pt.coord && pt.coord.text) {
+      pathPointsGroup.appendChild(g);
+
+      // Create coordinate label element (skip '無' text or starting point basic node)
+      if (pt.coord && pt.coord.text && pt.coord.text !== '無' && !pt.coord.isText && pt.key !== 'basic') {
+        const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        labelG.setAttribute('class', `label-group role-${pt.role}`);
+        
         const labelText = pt.coord.text;
-        const fontSize = 8.5; // Clear, legible size across mobile and desktop SVG viewports
-        const bgWidth = labelText.length * fontSize * 0.65 + 7;
-        const bgHeight = fontSize * 1.45;
-        const labelY = pt.pos.y + size / 2 + bgHeight / 2 + 3.5;
+        const fontSize = 9;
+        const bgWidth = labelText.length * fontSize * 0.65 + 8;
+        const bgHeight = fontSize * 1.5;
+        const labelY = pt.pos.y + size / 2 + bgHeight / 2 + 4;
 
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         labelBg.setAttribute('x', pt.pos.x - bgWidth / 2);
         labelBg.setAttribute('y', labelY - bgHeight / 2);
         labelBg.setAttribute('width', bgWidth);
         labelBg.setAttribute('height', bgHeight);
-        labelBg.setAttribute('rx', 3);
-        labelBg.setAttribute('ry', 3);
+        labelBg.setAttribute('rx', 4);
+        labelBg.setAttribute('ry', 4);
         labelBg.setAttribute('class', pt.role === 'current' ? 'path-label-bg bg-current' : 'path-label-bg');
-        g.appendChild(labelBg);
+        labelG.appendChild(labelBg);
 
         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         textEl.setAttribute('x', pt.pos.x);
@@ -1355,21 +1398,20 @@
         textEl.setAttribute('class', pt.role === 'current' ? 'path-label-text text-current' : 'path-label-text');
         textEl.setAttribute('style', `font-size: ${fontSize}px; font-weight: bold;`);
         textEl.textContent = labelText;
-        g.appendChild(textEl);
-      }
+        labelG.appendChild(textEl);
 
-      pathPointsGroup.appendChild(g);
+        labelsToAppend.push({ element: labelG, isCurrent: pt.role === 'current' });
+      }
     });
 
-    // 6. Draw the live performer avatar dot at its current position.
-    if (isMainSvg) {
-      const activePt = pointsToDraw[fIdx];
-      if (activePt) {
-        const avatar = createLiveAvatarElement();
-        if (avatar) {
-          avatar.setAttribute('transform', `translate(${activePt.pos.x}, ${activePt.pos.y})`);
-        }
-      }
+    // Append labels to topmost layer (current active label last so it is on the highest Z-index)
+    labelsToAppend.sort((a, b) => (a.isCurrent ? 1 : 0) - (b.isCurrent ? 1 : 0));
+    labelsToAppend.forEach(item => pathLabelsGroup.appendChild(item.element));
+
+    // Remove yellow current position marker avatar dot if present
+    const existingAvatar = document.getElementById('liveAvatarMarker');
+    if (existingAvatar && existingAvatar.parentNode) {
+      existingAvatar.parentNode.removeChild(existingAvatar);
     }
 
     // Update main Viewbox scale/rotation
@@ -1476,11 +1518,21 @@
     updateSvgViewBox();
   }
 
-  // Handle touch/mouse dragging of SVG grid
+  // Handle touch/mouse dragging, wheel zoom & 2-finger pinch zoom on SVG grid
   let isPointerDown = false;
+  let touchStartDist = 0;
+  let initialZoom = 1.0;
+
   localGridSvg.addEventListener('mousedown', pointerDown);
   localGridSvg.addEventListener('mousemove', pointerMove);
   document.addEventListener('mouseup', pointerUp);
+
+  // Mouse wheel zoom
+  localGridSvg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 0.88 : 1.14;
+    adjustMapZoom(zoomFactor);
+  }, { passive: false });
 
   localGridSvg.addEventListener('touchstart', touchStart, { passive: false });
   localGridSvg.addEventListener('touchmove', touchMove, { passive: false });
@@ -1507,10 +1559,18 @@
 
   function pointerUp() {
     isPointerDown = false;
+    touchStartDist = 0;
   }
 
   function touchStart(e) {
-    if (e.touches.length === 1) {
+    if (e.touches.length === 2) {
+      isPointerDown = false;
+      touchStartDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialZoom = zoomLevel;
+    } else if (e.touches.length === 1) {
       isPointerDown = true;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
@@ -1518,16 +1578,28 @@
   }
 
   function touchMove(e) {
-    if (!isPointerDown || e.touches.length !== 1) return;
-    e.preventDefault();
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
+    if (e.touches.length === 2 && touchStartDist > 0) {
+      e.preventDefault();
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (currentDist > 0) {
+        const zoomRatio = touchStartDist / currentDist;
+        zoomLevel = Math.max(0.4, Math.min(2.5, initialZoom * zoomRatio));
+        updateSvgViewBox();
+      }
+    } else if (e.touches.length === 1 && isPointerDown) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
 
-    panX -= dx * zoomLevel * 0.8;
-    panY -= dy * zoomLevel * 0.8;
-    updateSvgViewBox();
+      panX -= dx * zoomLevel * 0.8;
+      panY -= dy * zoomLevel * 0.8;
+      updateSvgViewBox();
+    }
   }
 
   // ==========================================================================
@@ -1867,8 +1939,8 @@
       });
     };
 
-    drawSection('第一部分 (第一階段)', keyFormations.slice(0, 12), listX, '#0f766e');
-    drawSection('第二部分 (第二階段)', keyFormations.slice(12), listX + columnW + 24, '#7c3aed');
+    drawSection('第一部分 (第一階段：起點～06四弘誓願)', keyFormations.slice(0, 9), listX, '#0f766e');
+    drawSection('第二部分 (第二階段：07-1大船師～11飛天)', keyFormations.slice(9), listX + columnW + 24, '#7c3aed');
     return canvas;
   }
 
