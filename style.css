@@ -912,6 +912,9 @@ body {
 
 .col-name {
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table-row.formation-item.active .col-name {
@@ -1533,6 +1536,16 @@ body {
   .logo-text p {
     display: none !important; /* 隱藏英文副標題 */
   }
+
+/* Responsive Layout Safeguards to Prevent Breakouts */
+@media (max-width: 1024px) {
+  .dashboard-body {
+    grid-template-columns: 1fr !important;
+  }
+  .formations-table-container-two-cols {
+    grid-template-columns: 1fr;
+  }
+}
 
   .header-actions {
     width: auto !important;
