@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大巨蛋跑位演繹 — 後台管理系統</title>
+  <!-- Google Fonts Outfit & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-sidebar: #0b132b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --color-teal: #0d9488;
+      --color-teal-hover: #0f766e;
+      --color-emerald: #10b981;
+      --color-rose: #f43f5e;
+      --color-amber: #f59e0b;
+      --color-indigo: #6366f1;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(30, 41, 59, 0.7);
+      --glass-blur: blur(12px);
+    }
+
+    /* Disable motion throughout the administration page. */
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Auth Panel Overlay */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 0.4s ease;
+    }
+
+    .auth-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-color);
+      padding: 40px;
+      border-radius: 20px;
+      width: 420px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+
+    .auth-logo {
+      font-size: 40px;
+      color: var(--color-teal);
+      margin-bottom: 20px;
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--color-teal);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-submit:hover {
+      background: var(--color-teal-hover);
+    }
+
+    .auth-error {
+      color: var(--color-rose);
+      font-size: 13px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    /* Dashboard Layout */
+    .sidebar {
+      width: 280px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 30px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-logo-icon {
+      font-size: 24px;
+      color: var(--color-teal);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 20px 16px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .menu-item button {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .menu-item button:hover {
+      color: var(--text-primary);
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+
+    .menu-item.active button {
+      color: var(--text-primary);
+      background-color: var(--color-teal);
+    }
+
+    .sidebar-footer {
+      padding: 20px 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-secondary-link {
+      background: none;
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary-link:hover {
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .main-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 70px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .content-area {
+      padding: 40px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    /* Tab Panels */
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      margin-bottom: 30px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Forms Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* Dropzone styling */
+    .dropzone-container {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+    }
+
+    .dropzone-container:hover, .dropzone-container.dragover {
+      border-color: var(--color-teal);
+      background: rgba(13, 148, 136, 0.05);
+    }
+
+    .dropzone-icon {
+      font-size: 40px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      transition: color 0.3s;
+    }
+
+    .dropzone-container:hover .dropzone-icon {
+      color: var(--color-teal);
+    }
+
+    .dropzone-text {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .dropzone-subtext {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* File selected state */
+    .selected-file-info {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .file-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-icon {
+      font-size: 20px;
+      color: var(--color-teal);
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 8px;
+    }
+
+    .btn-remove-file {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+
+    .btn-remove-file:hover {
+      color: var(--color-rose);
+    }
+
+    /* Alert / Message boxes */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .alert-error {
+      background-color: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fda4af;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .alert-success {
+      background-color: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .alert-info {
+      background-color: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #c7d2fe;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    /* Preview Table container */
+    .preview-container {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .preview-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      background: var(--color-teal);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    .btn-action:hover {
+      background: var(--color-teal-hover);
+    }
+
+    .btn-action.btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-action.btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text-secondary);
+    }
+
+    .btn-action.btn-danger {
+      background: var(--color-rose);
+    }
+    .btn-action.btn-danger:hover {
+      background: #e11d48;
+    }
+
+    /* Data Tables */
+    .table-container {
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+      max-height: 520px;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-secondary);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    tbody tr {
+      transition: background-color 0.2s;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Row actions */
+    .row-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-row-action {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .btn-row-action:hover {
+      color: var(--text-primary);
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-row-action.edit-btn:hover {
+      color: var(--color-indigo);
+    }
+
+    .btn-row-action.delete-btn:hover {
+      color: var(--color-rose);
+    }
+
+    .btn-row-action.save-btn:hover {
+      color: var(--color-emerald);
+    }
+
+    /* Pagination controls */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .pagination-info {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .pagination-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pagination-btn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Edit Form Row */
+    input.table-edit-input {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--color-teal);
+      border-radius: 4px;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 13px;
+      width: 100%;
+      outline: none;
+    }
+
+    /* Modal Form Overlay */
+    .form-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5000;
+    }
+
+    .form-modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 500px;
+      max-width: 90vw;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      overflow: hidden;
+      animation: modalSlideUp 0.3s ease-out;
+    }
+
+    .form-modal.wide {
+      width: 700px;
+    }
+
+    @keyframes modalSlideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .form-modal-header {
+      padding: 20px 24px;
+      background: rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-modal-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .form-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-modal-close:hover {
+      color: #fff;
+    }
+
+    .form-modal-body {
+      padding: 24px;
+      max-height: 65vh;
+      overflow-y: auto;
+    }
+
+    .form-modal-footer {
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.15);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-east {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-west {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    
+    .badge-general {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Loading overlay */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border-left-color: var(--color-teal);
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Panel -->
+  <div id="authPanel" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo"><i class="fa-solid fa-user-shield"></i></div>
+      <div class="auth-title">大巨蛋跑位演繹</div>
+      <div class="auth-subtitle">後台管理系統驗證</div>
+      
+      <form id="loginForm" onsubmit="handleLoginSubmit(event);">
+        <div class="form-group">
+          <label for="adminPwdInput">管理密碼</label>
+          <input type="password" id="adminPwdInput" class="form-control" placeholder="請輸入密碼..." required autocomplete="off">
+        </div>
+        <button type="submit" class="btn-submit">驗證並登入</button>
+      </form>
+      <div id="authErrorMsg" class="auth-error">密碼錯誤，請重新輸入！</div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-laptop-code"></i></div>
+      <div class="sidebar-title">演繹跑位後台</div>
+    </div>
+    
+    <ul class="sidebar-menu">
+      <li class="menu-item active" data-tab="tab-import">
+        <button><i class="fa-solid fa-file-import"></i> 批次匯入 CSV</button>
+      </li>
+      <li class="menu-item" data-tab="tab-names">
+        <button><i class="fa-solid fa-users"></i> 每日名單維護</button>
+      </li>
+      <li class="menu-item" data-tab="tab-coords">
+        <button><i class="fa-solid fa-map-location-dot"></i> 表演者座標維護</button>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <a href="/index.html" class="btn-secondary-link" target="_blank"><i class="fa-solid fa-house"></i> 回到查詢首頁</a>
+      <button class="btn-secondary-link" onclick="handleLogout();"><i class="fa-solid fa-right-from-bracket"></i> 登出系統</button>
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <main class="main-container">
+    <header class="topbar">
+      <div id="topbarTitle" class="topbar-title">批次匯入 CSV</div>
+      <div style="font-size: 14px; color: var(--text-secondary);">
+        <i class="fa-solid fa-calendar-days"></i> 本機維護環境
+      </div>
+    </header>
+
+    <div class="content-area">
+      <!-- ALERT MESSAGES -->
+      <div id="globalSuccessAlert" class="alert alert-success">
+        <i class="fa-solid fa-circle-check" style="margin-top: 2px;"></i>
+        <div id="globalSuccessAlertText"></div>
+      </div>
+      <div id="globalErrorAlert" class="alert alert-error">
+        <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px;"></i>
+        <div id="globalErrorAlertText"></div>
+      </div>
+
+      <!-- ================== TAB 1: CSV IMPORT ================== -->
+      <section id="tab-import" class="tab-panel active">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-sliders"></i> 設定匯入參數</div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="importTargetSelect">匯入資料類型</label>
+              <select id="importTargetSelect" class="form-control" onchange="toggleImportTargetFields();">
+                <option value="dayperformers">每日名單 (dayperformers.csv)</option>
+                <option value="performers">跑位座標資料 (performers.csv)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="importClassSelect">班別</label>
+              <select id="importClassSelect" class="form-control">
+                <option value="東班">東班</option>
+                <option value="西班">西班</option>
+              </select>
+            </div>
+            <div class="form-group session-dependent-field">
+              <label for="importSessionSelect">場次</label>
+              <select id="importSessionSelect" class="form-control" onchange="syncImportDateDropdown();">
+                <option value="1112">11/12(四)</option>
+                <option value="1113">11/13(五)</option>
+                <option value="1114">11/14(六)</option>
+                <option value="1115">11/15(日)</option>
+              </select>
+            </div>
+            <div class="form-group session-dependent-field">
+              <label for="importDateSelect">日期</label>
+              <select id="importDateSelect" class="form-control">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-file-csv"></i> 上傳 CSV 檔案</div>
+          
+          <div id="dropzone" class="dropzone-container" onclick="document.getElementById('csvFileInput').click();">
+            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+            <div class="dropzone-text">將 CSV 檔案拖曳至此處，或點擊選擇檔案</div>
+            <div class="dropzone-subtext">檔案格式必須為 UTF-8 編碼的 CSV 格式（檔名可為任意名稱，系統會主動識別並更新）</div>
+            <input type="file" id="csvFileInput" style="display: none;" accept=".csv" onchange="handleFileSelect(event);">
+          </div>
+
+          <!-- File Info -->
+          <div id="selectedFileInfo" class="selected-file-info">
+            <div class="file-details">
+              <i class="fa-solid fa-file-lines file-icon"></i>
+              <span id="selectedFileName" class="file-name">filename.csv</span>
+              <span id="selectedFileSize" class="file-size">(0 KB)</span>
+            </div>
+            <button class="btn-remove-file" onclick="clearSelectedFile();"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <!-- Validation Feedback / Alerts -->
+          <div id="importValidationAlert" class="alert alert-error" style="margin-bottom: 20px;">
+            <i class="fa-solid fa-circle-xmark" style="margin-top: 2px;"></i>
+            <div id="importValidationAlertText"></div>
+          </div>
+
+          <!-- Parsed Preview -->
+          <div id="csvPreviewContainer" class="preview-container">
+            <div class="preview-title"><i class="fa-solid fa-table-list"></i> 檔案資料預覽 (僅顯示前 5 筆)</div>
+            <div class="table-container">
+              <table id="previewTable">
+                <thead>
+                  <tr id="previewTableHead"></tr>
+                </thead>
+                <tbody id="previewTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Confirm button -->
+          <div id="importActions" style="margin-top: 25px; text-align: right; display: none;">
+            <button id="btnExecuteImport" class="btn-action" onclick="executeCSVImport();">
+              <i class="fa-solid fa-check-double"></i> 確認匯入此檔案
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== TAB 2: DAY PERFORMERS ================== -->
+      <section id="tab-names" class="tab-panel">
+        <div class="action-bar">
+          <div class="search-filter-group">
+            <input type="text" id="namesSearchInput" class="form-control" style="width: 250px;" placeholder="搜尋身份證、姓名..." oninput="filterNamesTable();">
+            <select id="namesClassFilter" class="form-control" style="width: 120px;" onchange="filterNamesTable();">
+              <option value="">所有班別</option>
+              <option value="東班">東班</option>
+              <option value="西班">西班</option>
+            </select>
+            <select id="namesDateFilter" class="form-control" style="width: 140px;" onchange="filterNamesTable();">
+              <option value="">所有日期</option>
+              <option value="11/12(四)">11/12(四)</option>
+              <option value="11/13(五)">11/13(五)</option>
+              <option value="11/14(六)">11/14(六)</option>
+              <option value="11/15(日)">11/15(日)</option>
+              <option value="1/12(四)">1/12(四)</option>
+              <option value="1/13(五)">1/13(五)</option>
+              <option value="1/14(六)">1/14(六)</option>
+              <option value="1/15(日)">1/15(日)</option>
+            </select>
+          </div>
+          
+          <button class="btn-action" onclick="openAddRowModal('dayperformers');">
+            <i class="fa-solid fa-user-plus"></i> 新增單筆名單
+          </button>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 15%">班別</th>
+                  <th style="width: 20%">日期</th>
+                  <th style="width: 25%">身份證</th>
+                  <th style="width: 25%">姓名</th>
+                  <th style="width: 15%">操作</th>
+                </tr>
+              </thead>
+              <tbody id="namesTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <div id="namesPaginationInfo" class="pagination-info">顯示第 0 到 0 筆，共 0 筆</div>
+            <div class="pagination-buttons">
+              <button id="btnPrevNames" class="pagination-btn" onclick="changeNamesPage(-1);"><i class="fa-solid fa-angle-left"></i> 上一頁</button>
+              <button id="btnNextNames" class="pagination-btn" onclick="changeNamesPage(1);">下一頁 <i class="fa-solid fa-angle-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== TAB 3: COORDINATES ================== -->
+      <section id="tab-coords" class="tab-panel">
+        <div class="action-bar">
+          <div class="search-filter-group">
+            <input type="text" id="coordsSearchInput" class="form-control" style="width: 250px;" placeholder="搜尋身份證、姓名、身分別..." oninput="filterCoordsTable();">
+            <select id="coordsClassFilter" class="form-control" style="width: 120px;" onchange="filterCoordsTable();">
+              <option value="">所有班別</option>
+              <option value="東班">東班</option>
+              <option value="西班">西班</option>
+            </select>
+          </div>
+          
+          <button class="btn-action" onclick="openAddRowModal('performers');">
+            <i class="fa-solid fa-user-plus"></i> 新增表演者與座標
+          </button>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>班別</th>
+                  <th>身分別</th>
+                  <th>身份證</th>
+                  <th>姓名</th>
+                  <th>01圓形</th>
+                  <th>02行願</th>
+                  <th>03米籮</th>
+                  <th>04靜思</th>
+                  <th>05-1法船</th>
+                  <th>05-2無船</th>
+                  <th>06四弘</th>
+                  <th>07-1大船師</th>
+                  <th>07-2骨捐</th>
+                  <th>08教育</th>
+                  <th>09-1人文</th>
+                  <th>09-2人文</th>
+                  <th>10-1五大洲1</th>
+                  <th>10-2五大洲2</th>
+                  <th>11飛天</th>
+                  <th style="min-width: 110px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="coordsTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <div id="coordsPaginationInfo" class="pagination-info">顯示第 0 到 0 筆，共 0 筆</div>
+            <div class="pagination-buttons">
+              <button id="btnPrevCoords" class="pagination-btn" onclick="changeCoordsPage(-1);"><i class="fa-solid fa-angle-left"></i> 上一頁</button>
+              <button id="btnNextCoords" class="pagination-btn" onclick="changeCoordsPage(1);">下一頁 <i class="fa-solid fa-angle-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ================== ADD ROW MODAL ================== -->
+  <div id="addRowModal" class="form-modal-overlay">
+    <div id="addRowModalContainer" class="form-modal">
+      <div class="form-modal-header">
+        <span id="modalFormTitle" class="form-modal-title">新增單筆資料</span>
+        <button class="form-modal-close" onclick="closeAddRowModal();"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <!-- Content for Day Performers Form -->
+      <div id="dayFormFields" class="form-modal-body" style="display: none;">
+        <div class="form-group">
+          <label for="formDayClass">班別</label>
+          <select id="formDayClass" class="form-control">
+            <option value="東班">東班</option>
+            <option value="西班">西班</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="formDayDate">日期</label>
+          <select id="formDayDate" class="form-control">
+            <option value="11/12(四)">11/12(四)</option>
+            <option value="11/13(五)">11/13(五)</option>
+            <option value="11/14(六)">11/14(六)</option>
+            <option value="11/15(日)">11/15(日)</option>
+            <option value="1/12(四)">1/12(四)</option>
+            <option value="1/13(五)">1/13(五)</option>
+            <option value="1/14(六)">1/14(六)</option>
+            <option value="1/15(日)">1/15(日)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="formDayId">身份證 (如: 4-50)</label>
+          <input type="text" id="formDayId" class="form-control" placeholder="請輸入身份證網格編號">
+        </div>
+        <div class="form-group">
+          <label for="formDayName">姓名</label>
+          <input type="text" id="formDayName" class="form-control" placeholder="請輸入姓名">
+        </div>
+      </div>
+
+      <!-- Content for Performers Coords Form -->
+      <div id="perfFormFields" class="form-modal-body" style="display: none;">
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label for="formPerfClass">班別</label>
+            <select id="formPerfClass" class="form-control">
+              <option value="東班">東班</option>
+              <option value="西班">西班</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="formPerfCat">身分別 (如: A白, B藍)</label>
+            <input type="text" id="formPerfCat" class="form-control" placeholder="A白" value="A白">
+          </div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label for="formPerfId">身份證 (如: 4-50)</label>
+            <input type="text" id="formPerfId" class="form-control" placeholder="請輸入身份證">
+          </div>
+          <div class="form-group">
+            <label for="formPerfName">姓名 (一般填 缺)</label>
+            <input type="text" id="formPerfName" class="form-control" placeholder="缺" value="缺">
+          </div>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin-bottom: 20px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="formPerfCircle">01圓形 座標</label>
+            <input type="text" id="formPerfCircle" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfXing">02行願 座標</label>
+            <input type="text" id="formPerfXing" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfMiLuo">03米籮 座標</label>
+            <input type="text" id="formPerfMiLuo" class="form-control" placeholder="自動與起點一致" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+          </div>
+          <div class="form-group">
+            <label for="formPerfJing">04靜思 座標</label>
+            <input type="text" id="formPerfJing" class="form-control" placeholder="X-Y">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="formPerfLamp">05-1法船 座標</label>
+            <input type="text" id="formPerfLamp" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfNoBoat">05-2無船 座標</label>
+            <input type="text" id="formPerfNoBoat" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfBigV">06四弘 座標</label>
+            <input type="text" id="formPerfBigV" class="form-control" placeholder="X-Y">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="formPerfDaChuan">07-1大船師 座標</label>
+            <input type="text" id="formPerfDaChuan" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfBoneDonation">07-2骨捐 座標</label>
+            <input type="text" id="formPerfBoneDonation" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfEdu">08教育 座標</label>
+            <input type="text" id="formPerfEdu" class="form-control" placeholder="X-Y">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="formPerfHumanities2">09-2人文(主機板) 座標</label>
+            <input type="text" id="formPerfHumanities2" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfFiveContinents1">10-1五大洲1 座標</label>
+            <input type="text" id="formPerfFiveContinents1" class="form-control" placeholder="X-Y">
+          </div>
+          <div class="form-group">
+            <label for="formPerfFiveContinents2">10-2五大洲2 座標</label>
+            <input type="text" id="formPerfFiveContinents2" class="form-control" placeholder="X-Y">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="formPerfFlyingApsaras">11飛天 座標</label>
+            <input type="text" id="formPerfFlyingApsaras" class="form-control" placeholder="X-Y">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-modal-footer">
+        <button class="btn-action btn-secondary" onclick="closeAddRowModal();">取消</button>
+        <button id="btnConfirmAddRow" class="btn-action" onclick="submitAddRow();">確認新增</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Datastore
+    let datastore = {
+      performers: [],
+      dayperformers: []
+    };
+
+    let filteredNames = [];
+    let filteredCoords = [];
+
+    // Pagination State
+    let namesPage = 0;
+    let coordsPage = 0;
+    const itemsPerPage = 50;
+
+    // Selected CSV File Details
+    let selectedCSVContent = null;
+    let selectedCSVFile = null;
+
+    // Inline edit states
+    let activeEditingRowKey = null; // for inline edit tracking
+
+    // Session-Date Mapping
+    const SESSION_DATES = {
+      '1112': ['11/12(四)', '1/12(四)'],
+      '1113': ['11/13(五)', '1/13(五)'],
+      '1114': ['11/14(六)', '1/14(六)'],
+      '1115': ['11/15(日)', '1/15(日)']
+    };
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      // Setup drag and drop
+      const dropzone = document.getElementById('dropzone');
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      // Setup tabs
+      document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const tabId = item.getAttribute('data-tab');
+          document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          
+          item.classList.add('active');
+          document.getElementById(tabId).classList.add('active');
+          document.getElementById('topbarTitle').textContent = item.querySelector('button').textContent.trim();
+          
+          clearAlerts();
+        });
+      });
+
+      // Initialize dropdowns
+      syncImportDateDropdown();
+      toggleImportTargetFields();
+
+      // Check session
+      checkSessionAuth();
+    });
+
+    // Authentication Checks
+    function checkSessionAuth() {
+      const pwd = sessionStorage.getItem('admin_pwd');
+      if (pwd) {
+        // Automatically hide overlay and load data
+        document.getElementById('authPanel').style.display = 'none';
+        loadDashboardData(pwd);
+      }
+    }
+
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      const pwd = document.getElementById('adminPwdInput').value;
+      const errorMsg = document.getElementById('authErrorMsg');
+      errorMsg.style.display = 'none';
+
+      fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          sessionStorage.setItem('admin_pwd', pwd);
+          document.getElementById('authPanel').style.display = 'none';
+          loadDashboardData(pwd);
+        } else {
+          errorMsg.style.display = 'block';
+          errorMsg.textContent = data.error || '密碼錯誤';
+        }
+      })
+      .catch(err => {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = '無法連接後台伺服器';
+      });
+    }
+
+    // Load Data from Backend
+    function loadDashboardData(pwd) {
+      fetch('/api/admin/get-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          datastore.performers = data.performers || [];
+          datastore.dayperformers = data.dayperformers || [];
+          
+          // Reset filters
+          filterNamesTable();
+          filterCoordsTable();
+        } else {
+          alert('讀取資料失敗：' + (data.error || '未授權'));
+          handleLogout();
+        }
+      })
+      .catch(err => {
+        alert('載入資料出錯，請確認後端是否正常運作。');
+      });
+    }
+
+    // Dropdown helpers
+    function syncImportDateDropdown() {
+      const sess = document.getElementById('importSessionSelect').value;
+      const dateSelect = document.getElementById('importDateSelect');
+      dateSelect.innerHTML = '';
+      const dates = SESSION_DATES[sess] || [];
+      dates.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        dateSelect.appendChild(opt);
+      });
+    }
+
+    function toggleImportTargetFields() {
+      const target = document.getElementById('importTargetSelect').value;
+      const dependentFields = document.querySelectorAll('.session-dependent-field');
+      dependentFields.forEach(el => {
+        el.style.display = (target === 'dayperformers') ? 'block' : 'none';
+      });
+      // Clear file selection on target change
+      clearSelectedFile();
+    }
+
+    // File selection / parsing
+    function handleFileSelect(e) {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    }
+
+    function handleFile(file) {
+      if (!file.name.endsWith('.csv')) {
+        showValidationAlert("請選擇正確的 .csv 檔案！");
+        return;
+      }
+
+      selectedCSVFile = file;
+      document.getElementById('selectedFileName').textContent = file.name;
+      document.getElementById('selectedFileSize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('selectedFileInfo').style.display = 'flex';
+      
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const arrayBuffer = evt.target.result;
+        try {
+          // 使用 TextDecoder 驗證是否為 UTF-8 編碼 (若非 UTF-8，fatal: true 會拋出例外)
+          const decoder = new TextDecoder('utf-8', { fatal: true });
+          const text = decoder.decode(arrayBuffer);
+          selectedCSVContent = text;
+          validateAndPreviewCSV(selectedCSVContent);
+        } catch (err) {
+          showValidationAlert("⚠️ 檔案編碼錯誤！請確認上傳的檔案是 UTF-8 編碼格式。<br><small style='color: var(--text-secondary);'>提示：請在儲存或匯出 CSV 時，將編碼選擇為「UTF-8」或「帶 BOM 的 UTF-8」。</small>");
+          selectedCSVContent = null;
+          document.getElementById('csvPreviewContainer').style.display = 'none';
+          document.getElementById('importActions').style.display = 'none';
+        }
+      };
+      reader.onerror = function() {
+        showValidationAlert("⚠️ 讀取檔案失敗！");
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function clearSelectedFile() {
+      selectedCSVFile = null;
+      selectedCSVContent = null;
+      document.getElementById('csvFileInput').value = '';
+      document.getElementById('selectedFileInfo').style.display = 'none';
+      document.getElementById('csvPreviewContainer').style.display = 'none';
+      document.getElementById('importActions').style.display = 'none';
+      clearValidationAlert();
+    }
+
+    // Simple CSV parser
+    function parseCSV(text) {
+      const lines = [];
+      let row = [""];
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        let c = text[i];
+        let next = text[i+1];
+        if (c === '"') {
+          if (inQuotes && next === '"') { row[row.length - 1] += '"'; i++; } // Escaped quote
+          else { inQuotes = !inQuotes; }
+        } else if (c === ',' && !inQuotes) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+          if (c === '\r' && next === '\n') { i++; }
+          lines.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== '') {
+        lines.push(row);
+      }
+      return lines;
+    }
+
+    // Client side CSV validation & Preview
+    function validateAndPreviewCSV(content) {
+      clearValidationAlert();
+      const rows = parseCSV(content.trim());
+      if (rows.length < 2) {
+        showValidationAlert("CSV 檔案內容為空或無資料列");
+        return;
+      }
+
+      const headers = rows[0].map(h => h.trim());
+      const dataRows = rows.slice(1);
+
+      // Find indices by alias
+      const getColIndex = (aliases) => {
+        return headers.findIndex(h => aliases.some(a => a.toLowerCase() === h.toLowerCase()));
+      };
+
+      const classIdx = getColIndex(['班別', '東西班', '組別', 'team']);
+      const dateIdx = getColIndex(['日期', 'date']);
+      const idIdx = getColIndex(['身份證', '身分證', 'id']);
+      const nameIdx = getColIndex(['姓名', 'name']);
+
+      const target = document.getElementById('importTargetSelect').value;
+      const targetClass = document.getElementById('importClassSelect').value;
+      const targetDate = document.getElementById('importDateSelect').value;
+
+      // Header checks
+      if (target === 'dayperformers') {
+        if (classIdx === -1 || dateIdx === -1 || idIdx === -1 || nameIdx === -1) {
+          showValidationAlert(`⚠️ 檔案欄位不正確！必須包含「班別」、「日期」、「身份證」與「姓名」欄位。<br>目前欄位：[${headers.join(', ')}]`);
+          return;
+        }
+      } else { // performers
+        if (classIdx === -1 || idIdx === -1) {
+          showValidationAlert(`⚠️ 檔案欄位不正確！必須包含「班別」與「身份證」欄位。<br>目前欄位：[${headers.join(', ')}]`);
+          return;
+        }
+      }
+
+      // Check data consistency
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i];
+        if (row.length < 2 || row.every(val => val === '')) continue; // Skip empty rows
+
+        const rClass = row[classIdx]?.trim();
+        if (rClass !== targetClass) {
+          showValidationAlert(`⚠️ 內容不一致！第 ${i + 2} 行的班別為「${rClass}」，與選擇的「${targetClass}」不同！`);
+          return;
+        }
+
+        if (target === 'dayperformers') {
+          const rDate = row[dateIdx]?.trim();
+          if (rDate !== targetDate) {
+            showValidationAlert(`⚠️ 內容不一致！第 ${i + 2} 行的日期為「${rDate}」，與選擇的「${targetDate}」不同！`);
+            return;
+          }
+        }
+      }
+
+      // Display Preview (max 5 rows)
+      const previewHead = document.getElementById('previewTableHead');
+      const previewBody = document.getElementById('previewTableBody');
+      
+      previewHead.innerHTML = '';
+      previewBody.innerHTML = '';
+
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        previewHead.appendChild(th);
+      });
+
+      const previewRows = dataRows.slice(0, 5);
+      previewRows.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(val => {
+          const td = document.createElement('td');
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        previewBody.appendChild(tr);
+      });
+
+      document.getElementById('csvPreviewContainer').style.display = 'block';
+      document.getElementById('importActions').style.display = 'block';
+    }
+
+    function showValidationAlert(msg) {
+      const el = document.getElementById('importValidationAlert');
+      const text = document.getElementById('importValidationAlertText');
+      text.innerHTML = msg;
+      el.style.display = 'flex';
+      document.getElementById('importActions').style.display = 'none';
+    }
+
+    function clearValidationAlert() {
+      document.getElementById('importValidationAlert').style.display = 'none';
+    }
+
+    // Execute Import on Server
+    function executeCSVImport() {
+      const pwd = sessionStorage.getItem('admin_pwd');
+      const target = document.getElementById('importTargetSelect').value;
+      const classVal = document.getElementById('importClassSelect').value;
+      const sessionVal = document.getElementById('importSessionSelect').value;
+      const dateVal = document.getElementById('importDateSelect').value;
+
+      const btn = document.getElementById('btnExecuteImport');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> 匯入中...`;
+
+      fetch('/api/admin/import-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: pwd,
+          importType: target,
+          classVal: classVal,
+          sessionVal: sessionVal,
+          dateVal: dateVal,
+          csvText: selectedCSVContent
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-double"></i> 確認匯入此檔案`;
+
+        if (data.success) {
+          showGlobalAlert('success', `🎉 匯入成功！總共讀取 ${data.total_read} 筆，成功新增 ${data.added_count} 筆，更新/覆蓋 ${data.updated_count} 筆，重複忽略 ${data.ignored_count} 筆。`);
+          clearSelectedFile();
+          loadDashboardData(pwd); // reload
+        } else {
+          showGlobalAlert('error', `❌ 匯入失敗：` + (data.error || '未知錯誤'));
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-double"></i> 確認匯入此檔案`;
+        showGlobalAlert('error', `❌ 無法連線至伺服器，匯入失敗。`);
+      });
+    }
+
+    // Global Alerts
+    function showGlobalAlert(type, msg) {
+      clearAlerts();
+      const el = type === 'success' ? document.getElementById('globalSuccessAlert') : document.getElementById('globalErrorAlert');
+      const text = type === 'success' ? document.getElementById('globalSuccessAlertText') : document.getElementById('globalErrorAlertText');
+      text.textContent = msg;
+      el.style.display = 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function clearAlerts() {
+      document.getElementById('globalSuccessAlert').style.display = 'none';
+      document.getElementById('globalErrorAlert').style.display = 'none';
+    }
+
+    // ==========================================
+    // TAB 2: NAMES TABLE (dayperformers)
+    // ==========================================
+    function filterNamesTable() {
+      const q = document.getElementById('namesSearchInput').value.toLowerCase().trim();
+      const classF = document.getElementById('namesClassFilter').value;
+      const dateF = document.getElementById('namesDateFilter').value;
+
+      filteredNames = datastore.dayperformers.filter(p => {
+        const idMatches = p['身份證']?.toLowerCase().includes(q);
+        const nameMatches = p['姓名']?.toLowerCase().includes(q);
+        const classMatches = !classF || p['班別'] === classF;
+        const dateMatches = !dateF || p['日期'] === dateF;
+        return (idMatches || nameMatches) && classMatches && dateMatches;
+      });
+
+      namesPage = 0;
+      renderNamesTable();
+    }
+
+    function renderNamesTable() {
+      const tbody = document.getElementById('namesTableBody');
+      tbody.innerHTML = '';
+
+      const start = namesPage * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = filteredNames.slice(start, end);
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">沒有符合條件的資料</td></tr>`;
+        document.getElementById('namesPaginationInfo').textContent = `顯示第 0 筆，共 0 筆`;
+        document.getElementById('btnPrevNames').disabled = true;
+        document.getElementById('btnNextNames').disabled = true;
+        return;
+      }
+
+      pageData.forEach(p => {
+        const tr = document.createElement('tr');
+        const uniqueKey = `${p['班別']}_${p['日期']}_${p['身份證']}`;
+        const isEditing = activeEditingRowKey === uniqueKey;
+
+        const badgeClass = p['班別'] === '東班' ? 'badge-east' : p['班別'] === '西班' ? 'badge-west' : 'badge-general';
+
+        if (isEditing) {
+          tr.innerHTML = `
+            <td><span class="badge ${badgeClass}">${p['班別']}</span></td>
+            <td>${p['日期']}</td>
+            <td>${p['身份證']}</td>
+            <td><input type="text" class="table-edit-input" id="editName_${uniqueKey}" value="${p['姓名']}"></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn-row-action save-btn" onclick="saveInlineEdit('dayperformers', '${uniqueKey}', { '班別': '${p['班別']}', '日期': '${p['日期']}', '身份證': '${p['身份證']}' });">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+                <button class="btn-row-action" onclick="cancelInlineEdit();">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td><span class="badge ${badgeClass}">${p['班別']}</span></td>
+            <td>${p['日期']}</td>
+            <td>${p['身份證']}</td>
+            <td>${p['姓名']}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn-row-action edit-btn" onclick="startInlineEdit('${uniqueKey}');">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn-row-action delete-btn" onclick="deleteRow('dayperformers', { '班別': '${p['班別']}', '日期': '${p['日期']}', '身份證': '${p['身份證']}' });">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          `;
+        }
+        tbody.appendChild(tr);
+      });
+
+      // Pagination UI
+      const count = filteredNames.length;
+      const toShowEnd = Math.min(end, count);
+      document.getElementById('namesPaginationInfo').textContent = `顯示第 ${start + 1} 到 ${toShowEnd} 筆，共 ${count} 筆`;
+      document.getElementById('btnPrevNames').disabled = namesPage === 0;
+      document.getElementById('btnNextNames').disabled = end >= count;
+    }
+
+    function changeNamesPage(dir) {
+      namesPage += dir;
+      renderNamesTable();
+    }
+
+    // ==========================================
+    // TAB 3: COORDS TABLE (performers)
+    // ==========================================
+    function filterCoordsTable() {
+      const q = document.getElementById('coordsSearchInput').value.toLowerCase().trim();
+      const classF = document.getElementById('coordsClassFilter').value;
+
+      filteredCoords = datastore.performers.filter(p => {
+        const idMatches = p['身份證']?.toLowerCase().includes(q);
+        const nameMatches = p['姓名']?.toLowerCase().includes(q);
+        const catMatches = p['身分別']?.toLowerCase().includes(q);
+        const classMatches = !classF || p['班別'] === classF;
+        return (idMatches || nameMatches || catMatches) && classMatches;
+      });
+
+      coordsPage = 0;
+      renderCoordsTable();
+    }
+
+    function renderCoordsTable() {
+      const tbody = document.getElementById('coordsTableBody');
+      tbody.innerHTML = '';
+
+      const start = coordsPage * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = filteredCoords.slice(start, end);
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="20" style="text-align: center; color: var(--text-secondary);">沒有符合條件的資料</td></tr>`;
+        document.getElementById('coordsPaginationInfo').textContent = `顯示第 0 筆，共 0 筆`;
+        document.getElementById('btnPrevCoords').disabled = true;
+        document.getElementById('btnNextCoords').disabled = true;
+        return;
+      }
+
+      pageData.forEach(p => {
+        const tr = document.createElement('tr');
+        const uniqueKey = `${p['班別']}_${p['身份證']}`;
+        const isEditing = activeEditingRowKey === uniqueKey;
+
+        const badgeClass = p['班別'] === '東班' ? 'badge-east' : p['班別'] === '西班' ? 'badge-west' : 'badge-general';
+
+        if (isEditing) {
+          tr.innerHTML = `
+            <td><span class="badge ${badgeClass}">${p['班別']}</span></td>
+            <td><input type="text" class="table-edit-input" id="editCat_${uniqueKey}" value="${p['身分別'] || 'A白'}" style="width: 55px;"></td>
+            <td>${p['身份證']}</td>
+            <td><input type="text" class="table-edit-input" id="editName2_${uniqueKey}" value="${p['姓名'] || '缺'}" style="width: 65px;"></td>
+            <td><input type="text" class="table-edit-input" id="editCircle_${uniqueKey}" value="${p['01圓形'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editXing_${uniqueKey}" value="${p['02行願'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editMiLuo_${uniqueKey}" value="${p['03米籮'] || ''}" style="width: 70px; background-color: #f3f4f6; border: none; outline: none; cursor: not-allowed;" readonly></td>
+            <td><input type="text" class="table-edit-input" id="editJing_${uniqueKey}" value="${p['04靜思家風'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editLamp_${uniqueKey}" value="${p['05-1有法船（點一盞燈）'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editNoBoat_${uniqueKey}" value="${p['05-2無法船（菜市場5毛錢）'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editBigV_${uniqueKey}" value="${p['06四弘誓願'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editDaChuan_${uniqueKey}" value="${p['07-1大船師'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editBoneDonation_${uniqueKey}" value="${p['07-2骨捐能捨'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editEdu_${uniqueKey}" value="${p['08教育'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editHumanities1_${uniqueKey}" value="${p['身份證']}" style="width: 70px; background-color: #f3f4f6; border: none; outline: none; cursor: not-allowed;" readonly></td>
+            <td><input type="text" class="table-edit-input" id="editHumanities2_${uniqueKey}" value="${p['09-2人文'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editFiveContinents1_${uniqueKey}" value="${p['10-1五大洲'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editFiveContinents2_${uniqueKey}" value="${p['10-2五大洲'] || ''}" style="width: 70px;"></td>
+            <td><input type="text" class="table-edit-input" id="editFlyingApsaras_${uniqueKey}" value="${p['11飛天'] || ''}" style="width: 70px;"></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn-row-action save-btn" onclick="saveInlineEdit('performers', '${uniqueKey}', { '班別': '${p['班別']}', '身份證': '${p['身份證']}' });">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+                <button class="btn-row-action" onclick="cancelInlineEdit();">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td><span class="badge ${badgeClass}">${p['班別']}</span></td>
+            <td>${p['身分別'] || 'A白'}</td>
+            <td>${p['身份證']}</td>
+            <td>${p['姓名'] || '缺'}</td>
+            <td>${p['01圓形'] || ''}</td>
+            <td>${p['02行願'] || ''}</td>
+            <td>${p['03米籮'] || ''}</td>
+            <td>${p['04靜思家風'] || ''}</td>
+            <td>${p['05-1有法船（點一盞燈）'] || ''}</td>
+            <td>${p['05-2無法船（菜市場5毛錢）'] || ''}</td>
+            <td>${p['06四弘誓願'] || ''}</td>
+            <td>${p['07-1大船師'] || ''}</td>
+            <td>${p['07-2骨捐能捨'] || ''}</td>
+            <td>${p['08教育'] || ''}</td>
+            <td>${p['身份證'] || ''}</td>
+            <td>${p['09-2人文'] || ''}</td>
+            <td>${p['10-1五大洲'] || ''}</td>
+            <td>${p['10-2五大洲'] || ''}</td>
+            <td>${p['11飛天'] || ''}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn-row-action edit-btn" onclick="startInlineEdit('${uniqueKey}');">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn-row-action delete-btn" onclick="deleteRow('performers', { '班別': '${p['班別']}', '身份證': '${p['身份證']}' });">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          `;
+        }
+        tbody.appendChild(tr);
+      });
+
+      const count = filteredCoords.length;
+      const toShowEnd = Math.min(end, count);
+      document.getElementById('coordsPaginationInfo').textContent = `顯示第 ${start + 1} 到 ${toShowEnd} 筆，共 ${count} 筆`;
+      document.getElementById('btnPrevCoords').disabled = Math.max(0, coordsPage) === 0;
+      document.getElementById('btnNextCoords').disabled = end >= count;
+    }
+
+    function changeCoordsPage(dir) {
+      coordsPage += dir;
+      renderCoordsTable();
+    }
+
+    // ==========================================
+    // INLINE EDIT LOGIC
+    // ==========================================
+    function startInlineEdit(key) {
+      activeEditingRowKey = key;
+      renderNamesTable();
+      renderCoordsTable();
+    }
+
+    // ==========================================
+    // CANCEL INLINE EDIT
+    // ==========================================
+    function cancelInlineEdit() {
+      activeEditingRowKey = null;
+      renderNamesTable();
+      renderCoordsTable();
+    }
+
+    function saveInlineEdit(type, uniqueKey, oldKey) {
+      const pwd = sessionStorage.getItem('admin_pwd');
+      let row = { ...oldKey };
+
+      if (type === 'dayperformers') {
+        row['姓名'] = document.getElementById(`editName_${uniqueKey}`).value.trim();
+      } else { // performers
+        row['身分別'] = document.getElementById(`editCat_${uniqueKey}`).value.trim();
+        row['姓名'] = document.getElementById(`editName2_${uniqueKey}`).value.trim();
+        row['01圓形'] = document.getElementById(`editCircle_${uniqueKey}`).value.trim();
+        row['02行願'] = document.getElementById(`editXing_${uniqueKey}`).value.trim();
+        row['03米籮'] = document.getElementById(`editMiLuo_${uniqueKey}`).value.trim();
+        row['04靜思家風'] = document.getElementById(`editJing_${uniqueKey}`).value.trim();
+        row['05-1有法船（點一盞燈）'] = document.getElementById(`editLamp_${uniqueKey}`).value.trim();
+        row['05-2無法船（菜市場5毛錢）'] = document.getElementById(`editNoBoat_${uniqueKey}`).value.trim();
+        row['06四弘誓願'] = document.getElementById(`editBigV_${uniqueKey}`).value.trim();
+        row['07-1大船師'] = document.getElementById(`editDaChuan_${uniqueKey}`).value.trim();
+        row['07-2骨捐能捨'] = document.getElementById(`editBoneDonation_${uniqueKey}`).value.trim();
+        row['08教育'] = document.getElementById(`editEdu_${uniqueKey}`).value.trim();
+        row['09-1人文'] = oldKey['身份證'];
+        row['09-2人文'] = document.getElementById(`editHumanities2_${uniqueKey}`).value.trim();
+        row['10-1五大洲'] = document.getElementById(`editFiveContinents1_${uniqueKey}`).value.trim();
+        row['10-2五大洲'] = document.getElementById(`editFiveContinents2_${uniqueKey}`).value.trim();
+        row['11飛天'] = document.getElementById(`editFlyingApsaras_${uniqueKey}`).value.trim();
+      }
+
+      fetch('/api/admin/save-row', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: pwd,
+          type: type,
+          action: 'update',
+          row: row,
+          oldKey: oldKey
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showGlobalAlert('success', '✅ 儲存修改成功！');
+          activeEditingRowKey = null;
+          loadDashboardData(pwd);
+        } else {
+          alert('儲存失敗：' + (data.error || '未知錯誤'));
+        }
+      })
+      .catch(err => {
+        alert('網路連線失敗，無法儲存');
+      });
+    }
+
+    // ==========================================
+    // DELETE ROW LOGIC
+    // ==========================================
+    function deleteRow(type, key) {
+      let confirmMsg = "";
+      if (type === 'dayperformers') {
+        confirmMsg = `確定要刪除「班別：${key['班別']}，日期：${key['日期']}，身份證：${key['身份證']}」的名單資料嗎？`;
+      } else {
+        confirmMsg = `確定要刪除「班別：${key['班別']}，身份證：${key['身份證']}」的表演者與其所有座標資料嗎？`;
+      }
+
+      if (!confirm(confirmMsg)) return;
+
+      const pwd = sessionStorage.getItem('admin_pwd');
+
+      fetch('/api/admin/save-row', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: pwd,
+          type: type,
+          action: 'delete',
+          oldKey: key
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showGlobalAlert('success', '🗑️ 資料已成功刪除！');
+          loadDashboardData(pwd);
+        } else {
+          alert('刪除失敗：' + (data.error || '未知錯誤'));
+        }
+      })
+      .catch(err => {
+        alert('網路連線失敗，無法刪除');
+      });
+    }
+
+    // Sync formPerfId to formPerfMiLuo
+    document.addEventListener('DOMContentLoaded', () => {
+      const formPerfId = document.getElementById('formPerfId');
+      if (formPerfId) {
+        formPerfId.addEventListener('input', (e) => {
+          const formPerfMiLuo = document.getElementById('formPerfMiLuo');
+          if (formPerfMiLuo) {
+            formPerfMiLuo.value = e.target.value.trim();
+          }
+        });
+      }
+    });
+
+    // ==========================================
+    // ADD NEW ROW LOGIC (MODAL)
+    // ==========================================
+    let currentAddType = 'dayperformers';
+
+    function openAddRowModal(type) {
+      currentAddType = type;
+      document.getElementById('addRowModal').style.display = 'flex';
+      
+      const dayForm = document.getElementById('dayFormFields');
+      const perfForm = document.getElementById('perfFormFields');
+      const title = document.getElementById('modalFormTitle');
+      const container = document.getElementById('addRowModalContainer');
+
+      if (type === 'dayperformers') {
+        title.textContent = "新增單筆每日場次名單";
+        dayForm.style.display = 'block';
+        perfForm.style.display = 'none';
+        container.className = 'form-modal';
+        
+        // Reset day fields
+        document.getElementById('formDayId').value = '';
+        document.getElementById('formDayName').value = '';
+      } else {
+        title.textContent = "新增表演者與座標基本資料";
+        dayForm.style.display = 'none';
+        perfForm.style.display = 'block';
+        container.className = 'form-modal wide';
+
+        // Reset coords fields
+        document.getElementById('formPerfId').value = '';
+        document.getElementById('formPerfName').value = '缺';
+        document.getElementById('formPerfCat').value = 'A白';
+        document.getElementById('formPerfCircle').value = '';
+        document.getElementById('formPerfXing').value = '';
+        document.getElementById('formPerfJing').value = '';
+        document.getElementById('formPerfLamp').value = '';
+        document.getElementById('formPerfNoBoat').value = '';
+        document.getElementById('formPerfBigV').value = '';
+        document.getElementById('formPerfDaChuan').value = '';
+        document.getElementById('formPerfBoneDonation').value = '';
+        document.getElementById('formPerfEdu').value = '';
+        document.getElementById('formPerfHumanities2').value = '';
+        document.getElementById('formPerfFiveContinents1').value = '';
+        document.getElementById('formPerfFiveContinents2').value = '';
+        document.getElementById('formPerfFlyingApsaras').value = '';
+      }
+    }
+
+    function closeAddRowModal() {
+      document.getElementById('addRowModal').style.display = 'none';
+    }
+
+    function submitAddRow() {
+      const pwd = sessionStorage.getItem('admin_pwd');
+      let row = {};
+
+      if (currentAddType === 'dayperformers') {
+        row['班別'] = document.getElementById('formDayClass').value;
+        row['日期'] = document.getElementById('formDayDate').value;
+        row['身份證'] = document.getElementById('formDayId').value.trim();
+        row['姓名'] = document.getElementById('formDayName').value.trim();
+
+        if (!row['身份證'] || !row['姓名']) {
+          alert('請填寫身份證與姓名！');
+          return;
+        }
+      } else {
+        row['班別'] = document.getElementById('formPerfClass').value;
+        row['身分別'] = document.getElementById('formPerfCat').value.trim();
+        row['身份證'] = document.getElementById('formPerfId').value.trim();
+        row['姓名'] = document.getElementById('formPerfName').value.trim();
+        row['01圓形'] = document.getElementById('formPerfCircle').value.trim();
+        row['02行願'] = document.getElementById('formPerfXing').value.trim();
+        row['03米籮'] = document.getElementById('formPerfMiLuo').value.trim();
+        row['04靜思家風'] = document.getElementById('formPerfJing').value.trim();
+        row['05-1有法船（點一盞燈）'] = document.getElementById('formPerfLamp').value.trim();
+        row['05-2無法船（菜市場5毛錢）'] = document.getElementById('formPerfNoBoat').value.trim();
+        row['06四弘誓願'] = document.getElementById('formPerfBigV').value.trim();
+        row['07-1大船師'] = document.getElementById('formPerfDaChuan').value.trim();
+        row['07-2骨捐能捨'] = document.getElementById('formPerfBoneDonation').value.trim();
+        row['08教育'] = document.getElementById('formPerfEdu').value.trim();
+        row['09-1人文'] = row['身份證']; // 強制等於身份證
+        row['09-2人文'] = document.getElementById('formPerfHumanities2').value.trim();
+        row['10-1五大洲'] = document.getElementById('formPerfFiveContinents1').value.trim();
+        row['10-2五大洲'] = document.getElementById('formPerfFiveContinents2').value.trim();
+        row['11飛天'] = document.getElementById('formPerfFlyingApsaras').value.trim();
+
+        if (!row['身份證']) {
+          alert('請填寫身份證網格編號！');
+          return;
+        }
+      }
+
+      fetch('/api/admin/save-row', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: pwd,
+          type: currentAddType,
+          action: 'add',
+          row: row
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showGlobalAlert('success', '✅ 成功新增單筆資料！');
+          closeAddRowModal();
+          loadDashboardData(pwd);
+        } else {
+          alert('新增失敗：' + (data.error || '未知錯誤'));
+        }
+      })
+      .catch(err => {
+        alert('網路連線失敗，新增資料未成功');
+      });
+    }
+  </script>
+</body>
+</html>

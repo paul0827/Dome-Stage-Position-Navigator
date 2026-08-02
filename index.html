@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>大巨蛋演繹個人定位系統</title>
+  <!-- Google Fonts: Outfit & Noto Sans TC for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome for professional icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css?v=2.4.0">
+</head>
+<body>
+  <!-- Ambient background glow spots -->
+  <div class="glow-bg">
+    <div class="glow-circle blue"></div>
+    <div class="glow-circle teal"></div>
+    <div class="glow-circle gold"></div>
+  </div>
+
+  <!-- App Wrapper -->
+  <div class="app-screen">
+    
+    <!-- ===== Search & Setup Header Panel (Always visible at top when not searched, collapses when searched) ===== -->
+    <header class="app-header-search" id="appHeaderSearch">
+      <div class="search-inner">
+        <div class="search-logo">
+          <i class="fa-solid fa-crosshairs logo-icon animate-pulse"></i>
+          <div class="logo-text">
+            <h1>大巨蛋演繹個人定位系統</h1>
+            <p>Dome Stage Position Navigator</p>
+          </div>
+        </div>
+
+        <div class="search-wizard-container">
+          <!-- Step 1: Session Selector -->
+          <div class="wizard-row">
+            <span class="wizard-label"><i class="fa-solid fa-calendar-day"></i> 選擇日期場次</span>
+            <div class="session-selector-group" id="sessionSelectorGroup">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Step 2: Team Selector -->
+          <div class="wizard-row">
+            <span class="wizard-label"><i class="fa-solid fa-people-group"></i> 選擇所屬班別</span>
+            <div class="team-selector-group" id="teamSelectorGroup">
+              <button class="team-btn" data-team="east">
+                <span class="team-eng">EAST TEAM</span>
+                <span class="team-zh">東班</span>
+              </button>
+              <button class="team-btn" data-team="west">
+                <span class="team-eng">WEST TEAM</span>
+                <span class="team-zh">西班</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Search Bar -->
+          <div class="wizard-row">
+            <span class="wizard-label"><i class="fa-solid fa-magnifying-glass"></i> 輸入身分證座標</span>
+            <div class="search-box-wrapper">
+              <div class="search-input-container">
+                <input type="text" id="searchInput" placeholder="輸入身分證座標（如：4-46）" autocomplete="off">
+                <button id="clearSearchBtn" class="clear-search-btn" style="display: none;">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <!-- Autocomplete Suggestion Dropdown -->
+              <div id="autocompleteList" class="autocomplete-dropdown" style="display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="wizard-actions">
+            <button id="searchConfirmBtn" class="btn-primary" disabled>
+              <i class="fa-solid fa-circle-check"></i> 進入系統
+            </button>
+            <button id="adminBtn" class="btn-secondary">
+              <i class="fa-solid fa-user-gear"></i> 後台管理
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== Main Interactive Dashboard (Shown after search) ===== -->
+    <div class="app-dashboard" id="appDashboard" style="display: none;">
+      <!-- Dashboard Top Header Bar -->
+      <div class="dashboard-topbar">
+        <div class="performer-summary-badge">
+          <div class="perf-avatar" id="perfAvatar">A</div>
+          <div class="perf-info">
+            <h2 id="perfName">---</h2>
+            <div class="perf-meta">
+              <span class="meta-badge cat" id="perfCategory">---</span>
+              <span class="meta-badge id" id="perfID">---</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="changePerformerBtn" class="btn-icon" title="重新搜尋">
+            <i class="fa-solid fa-magnifying-glass"></i> <span>重新查詢</span>
+          </button>
+          <button id="downloadPdfBtn" class="btn-icon btn-gold" title="下載個人跑位定位表 PDF">
+            <i class="fa-solid fa-download"></i> <span>下載定位表</span>
+          </button>
+          <a href="使用手冊.pdf" target="_blank" class="btn-icon btn-secondary" title="使用手冊">
+            <i class="fa-solid fa-book-open"></i> <span>使用手冊</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid Layout -->
+      <div class="dashboard-body">
+        
+        <!-- Left Panel: Large Grid Map -->
+        <section class="dashboard-map-panel card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-map"></i> 個人定位與跑位軌跡地圖</h3>
+            <span class="map-hint-text"><i class="fa-solid fa-circle-info"></i> 可雙指縮放或單指拖移網格</span>
+          </div>
+
+          <div class="map-container-wrapper">
+            <!-- Map controls -->
+            <div class="map-zoom-controls">
+              <button id="zoomInBtn" class="map-btn" title="放大"><i class="fa-solid fa-plus"></i></button>
+              <button id="zoomOutBtn" class="map-btn" title="縮小"><i class="fa-solid fa-minus"></i></button>
+              <button id="rotateCcwBtn" class="map-btn" title="逆時針旋轉 45°"><i class="fa-solid fa-rotate-left"></i></button>
+              <button id="rotateCwBtn" class="map-btn" title="順時針旋轉 45°"><i class="fa-solid fa-rotate-right"></i></button>
+              <button id="zoomResetBtn" class="map-btn" title="重設對焦"><i class="fa-solid fa-arrows-to-dot"></i></button>
+            </div>
+
+            <!-- SVG Grid Map -->
+            <svg id="localGridSvg" viewBox="0 0 360 360">
+              <defs>
+                <!-- Markers for relative path arrows -->
+                <marker id="local-arrow-circle" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#BE6C50" />
+                </marker>
+                <marker id="local-arrow-xingYuan" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#0B954B" />
+                </marker>
+                <marker id="local-arrow-jingSi" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#80CEF3" />
+                </marker>
+                <marker id="local-arrow-lamp" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-noBoat" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-noBoat3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-bigV" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#F19EA8" />
+                </marker>
+                <marker id="local-arrow-daChuanShi" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#FDD100" />
+                </marker>
+
+                <!-- Static path arrow markers -->
+                <marker id="local-arrow-static-circle" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#BE6C50" />
+                </marker>
+                <marker id="local-arrow-static-xingYuan" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#0B954B" />
+                </marker>
+                <marker id="local-arrow-static-jingSi" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#80CEF3" />
+                </marker>
+                <marker id="local-arrow-static-lamp" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-static-noBoat" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-static-noBoat3" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#ACCE22" />
+                </marker>
+                <marker id="local-arrow-static-bigV" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#F19EA8" />
+                </marker>
+                <marker id="local-arrow-static-daChuanShi" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#FDD100" />
+                </marker>
+                <clipPath id="gridClip">
+                  <rect id="gridClipRect" x="0" y="0" width="360" height="360" />
+                </clipPath>
+              </defs>
+              <g id="localGridContent">
+                <!-- Dynamic coordinate grid -->
+                <g id="localGridLines" class="grid-lines"></g>
+                <!-- Stage blueprint background -->
+                <g id="stageWatermark" class="stage-watermark" clip-path="url(#gridClip)"></g>
+                <!-- Dynamic relative path lines -->
+                <g id="localPathGroup">
+                  <g id="localPathSegments"></g>
+                  <g id="localPathPoints"></g>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Settings Bar inside Map Panel -->
+          <div class="map-settings-row">
+            <div class="toggle-container">
+              <input type="checkbox" id="showFullTrajectory" autocomplete="off">
+              <label for="showFullTrajectory">顯示所有軌跡</label>
+            </div>
+            <div class="toggle-container">
+              <input type="checkbox" id="showAlignmentGuides" checked autocomplete="off">
+              <label for="showAlignmentGuides">對齊網格軸線</label>
+            </div>
+          </div>
+
+          <div class="stage-instruction" id="stageInstruction">
+            <i class="fa-solid fa-circle-info"></i> 舞台中線位於 X = -6，乙舞台中心點為 (-6,38)。網格標註為絕對舞台座標。
+          </div>
+        </section>
+
+        <!-- Right Panel: Key Formations Table -->
+        <section class="dashboard-list-panel card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-list-ol"></i> 17 個跑位定點對照表</h3>
+            <span class="panel-subtitle">點選下方項目可在左側地圖高亮該位置</span>
+          </div>
+
+          <!-- Steps List Table -->
+          <div class="formations-table-container">
+            <div class="table-row table-header">
+              <div class="col-num">項次</div>
+              <div class="col-name">演繹跑位隊形</div>
+              <div class="col-sticker">專屬地標貼紙</div>
+              <div class="col-coord">網格座標</div>
+            </div>
+            <div class="formations-list" id="formationsList">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Video / Tutorial Links -->
+          <div class="teach-links-group">
+            <a href="https://www.canva.com/design/DAHEwGFN0bE/WwmURC9KB1OsNo8p5L35AQ/view?utm_content=DAHEwGFN0bE&utm_campaign=designshare&utm_medium=link&utm_source=viewer" target="_blank" class="teach-btn">
+              <i class="fa-solid fa-graduation-cap"></i> <span>第一階段驗收教學</span>
+            </a>
+            <a href="https://reurl.cc/7Ez5ob" target="_blank" class="teach-btn second-phase">
+              <i class="fa-solid fa-graduation-cap"></i> <span>第二階段驗收教學</span>
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom Panel: Action Details & Lyrics Flow -->
+      <section class="dashboard-lyrics-panel card">
+        <div class="active-formation-display">
+          <span class="active-formation-num" id="activeFormNum">01</span>
+          <span class="active-formation-title" id="activeFormTitle">起點 (基本隊形)</span>
+          <span class="active-formation-coord" id="activeFormCoord">座標: ---</span>
+          
+          <div class="step-controls">
+            <button id="prevBtn" class="btn-step"><i class="fa-solid fa-chevron-left"></i> 上一景</button>
+            <button id="nextBtn" class="btn-step">下一景 <i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Walk movement instructions banner -->
+        <div id="activeFormMovement" class="active-formation-movement" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: var(--radius-sm); font-size: 13px; font-weight: bold; color: var(--gold-color); margin-top: 8px;">
+          <i class="fa-solid fa-person-walking" style="font-size: 16px; color: #fbbf24;"></i>
+          <span id="activeFormMovementText">走位指引：此處為起點站位。</span>
+        </div>
+
+        <!-- Action / Lyrics details content -->
+        <div class="lyrics-details-body">
+          <div class="lyrics-card">
+            <h4><i class="fa-solid fa-quote-left"></i> 唱誦段落</h4>
+            <div id="mapLyricsGuide" class="lyrics-text">起點暫無唱誦歌詞。</div>
+          </div>
+          <div class="action-card">
+            <h4><i class="fa-solid fa-person-walking-dashed-line"></i> 演繹動作說明</h4>
+            <div id="actionHintsFlow" class="action-hints-flow"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Admin Management Modal -->
+    <div id="adminModal" class="modal-overlay" style="display: none;">
+      <div class="modal-container admin-modal-container">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-user-gear"></i> 後台資料維護</h3>
+          <button id="closeAdminModalBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body admin-modal-body">
+          <!-- Password Verification -->
+          <div id="adminAuthScreen" class="admin-auth-screen">
+            <div class="admin-form-group">
+              <label for="adminPassword">請輸入管理密碼</label>
+              <input type="password" id="adminPassword" placeholder="輸入管理密碼..." autocomplete="off">
+            </div>
+            <button type="button" id="verifyAdminPasswordBtn" class="btn-primary">驗證密碼</button>
+          </div>
+
+          <!-- Main Admin Content (hidden until authenticated) -->
+          <div id="adminMainContent" style="display: none;">
+            <a href="/admin.html" target="_blank" class="btn-primary" style="display: block; text-align: center; text-decoration: none; background: var(--teal-color); margin-bottom: 15px;">
+              <i class="fa-solid fa-laptop-code"></i> 開啟電腦版專用管理後台
+            </a>
+            
+            <div class="admin-tabs">
+              <button class="admin-tab-btn active" data-admin-tab="dayperformers">修改姓名</button>
+              <button class="admin-tab-btn" data-admin-tab="performers">修改座標</button>
+            </div>
+            
+            <!-- Tab 1: Dayperformers (modify name) -->
+            <div class="admin-tab-panel active" id="adminPanel-dayperformers">
+              <form id="dayperformerForm" onsubmit="event.preventDefault();">
+                <div class="admin-form-group">
+                  <label for="adminDaySession">選擇場次</label>
+                  <select id="adminDaySession" required></select>
+                </div>
+                <div class="admin-form-group">
+                  <label for="adminDayTeam">選擇班別</label>
+                  <select id="adminDayTeam" required>
+                    <option value="東班">東班 (East Team)</option>
+                    <option value="西班">西班 (West Team)</option>
+                  </select>
+                </div>
+                <div class="admin-form-group">
+                  <label for="adminDayId">身分證編號 (如: 4-50)</label>
+                  <div class="admin-input-row">
+                    <input type="text" id="adminDayId" placeholder="輸入身分證，如: 4-50" required>
+                    <button type="button" id="queryDayPerformerBtn" class="btn-secondary">查詢名稱</button>
+                  </div>
+                </div>
+                <div class="admin-form-group">
+                  <label for="adminDayOldName">原姓名 (現有名稱)</label>
+                  <input type="text" id="adminDayOldName" placeholder="尚未查詢" readonly style="opacity: 0.65; cursor: not-allowed;">
+                </div>
+                <div class="admin-form-group">
+                  <label for="adminDayName">新姓名</label>
+                  <input type="text" id="adminDayName" placeholder="輸入新姓名" required>
+                </div>
+                <button type="submit" id="submitDayBtn" class="btn-primary" style="margin-top: 10px;">儲存修改</button>
+              </form>
+            </div>
+            
+            <!-- Tab 2: Performers (modify coordinates) -->
+            <div class="admin-tab-panel" id="adminPanel-performers" style="display: none;">
+              <form id="performerForm" onsubmit="event.preventDefault();">
+                <div class="admin-form-group">
+                  <label for="adminTeam">選擇班別</label>
+                  <select id="adminTeam" required>
+                    <option value="東班">東班 (East Team)</option>
+                    <option value="西班">西班 (West Team)</option>
+                  </select>
+                </div>
+                <div class="admin-form-group">
+                  <label for="adminId">身分證編號 (如: 4-50)</label>
+                  <div class="admin-input-row">
+                    <input type="text" id="adminId" placeholder="輸入身分證，如: 4-50" required>
+                    <button type="button" id="queryPerformerBtn" class="btn-secondary">查詢座標</button>
+                  </div>
+                </div> 
+                <hr class="admin-divider">
+                
+                <div class="coord-grid">
+                  <div class="admin-form-group">
+                    <label for="adminCircle">01圓形 座標 (X-Y)</label>
+                    <input type="text" id="adminCircle" placeholder="例如: 2.2-49.2" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminXingYuan">02行願 座標 (X-Y)</label>
+                    <input type="text" id="adminXingYuan" placeholder="例如: 2-52.2" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminMiLuo">03米籮 座標 (X-Y)</label>
+                    <input type="text" id="adminMiLuo" placeholder="與起點一致" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminJingSi">04靜思家風 座標 (X-Y)</label>
+                    <input type="text" id="adminJingSi" placeholder="例如: 4-50" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminLamp">05-1有法船 座標 (X-Y)</label>
+                    <input type="text" id="adminLamp" placeholder="例如: 11.6-44.8" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminNoBoat">05-2無法船 座標 (X-Y)</label>
+                    <input type="text" id="adminNoBoat" placeholder="例如: 11.6-44.8" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminBigV">06四弘誓願 座標 (X-Y)</label>
+                    <input type="text" id="adminBigV" placeholder="例如: 1.5-53.2" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminDaChuanShi">07-1大船師 座標 (X-Y)</label>
+                    <input type="text" id="adminDaChuanShi" placeholder="例如: 2-38" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminBoneDonation">07-2骨捐能捨 座標 (X-Y)</label>
+                    <input type="text" id="adminBoneDonation" placeholder="例如: 2-38" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminEdu">08教育 座標 (X-Y)</label>
+                    <input type="text" id="adminEdu" placeholder="例如: 3.5-39.2" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminHumanities2">09-2人文(主機板) 座標 (X-Y)</label>
+                    <input type="text" id="adminHumanities2" placeholder="例如: 6-43.5" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminFiveContinents1">10-1五大洲 座標 (X-Y)</label>
+                    <input type="text" id="adminFiveContinents1" placeholder="例如: 7-45" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminFiveContinents2">10-2五大洲 座標 (X-Y)</label>
+                    <input type="text" id="adminFiveContinents2" placeholder="例如: 8-46.2" required>
+                  </div>
+                  <div class="admin-form-group">
+                    <label for="adminFlyingApsaras">11飛天 座標 (X-Y)</label>
+                    <input type="text" id="adminFlyingApsaras" placeholder="例如: 9-48.8" required>
+                  </div>
+                </div>
+                <button type="submit" id="submitPerfBtn" class="btn-primary" style="margin-top: 15px;">儲存座標修改</button>
+              </form>
+            </div>
+            
+            <button type="button" id="adminFinishBtn" class="btn-primary" style="margin-top: 15px; background: #059669; display: none;">
+              <i class="fa-solid fa-circle-check"></i> 完成修改並重新整理
+            </button>
+          </div>
+          
+          <div id="adminMessage" class="admin-msg-box" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden element to render full map SVG for printing/downloads -->
+    <div id="modalBody" style="display: none;"></div>
+
+    <!-- PDF Download Mode Selector Modal -->
+    <div id="pdfDownloadModal" class="modal-overlay" style="display: none;">
+      <div class="modal-container" style="max-width: 400px; padding: 24px; text-align: center; border-radius: var(--radius-lg); border: 1px solid var(--border-color); background: #0f1524;">
+        <div style="font-size: 32px; color: var(--gold-color); margin-bottom: 16px;">
+          <i class="fa-solid fa-file-pdf"></i>
+        </div>
+        <h3 style="margin-bottom: 8px; font-size: 18px; font-weight: 700; color: #ffffff;">選擇下載範圍</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">請選擇您希望匯出並下載的定位表範圍：</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <button id="downloadAllPdfBtn" class="btn-icon btn-gold" style="justify-content: center; width: 100%; height: 42px;">
+            <i class="fa-solid fa-file-lines"></i> <span>下載隨身定位表（17 景總覽）</span>
+          </button>
+          <button id="downloadCurrentPdfBtn" class="btn-icon btn-secondary" style="justify-content: center; width: 100%; height: 42px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); color: var(--blue-color); transition: all 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.18)'; this.style.color='#ffffff';" onmouseout="this.style.background='rgba(56,189,248,0.08)'; this.style.color='var(--blue-color)';">
+            <i class="fa-solid fa-location-crosshairs"></i> <span>僅下載目前所選定點</span>
+          </button>
+        </div>
+        
+        <button id="closePdfModalBtn" class="control-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 100%; height: 38px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;">
+          取消
+        </button>
+      </div>
+    </div>
+
+    <!-- Fullscreen Image Lightbox Modal -->
+    <div id="imageLightbox" class="lightbox-overlay" style="display: none;">
+      <span class="lightbox-close">&times;</span>
+      <img class="lightbox-content" id="lightboxImg" src="" alt="Zoomed view">
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+
+    <!-- Footer Bar -->
+    <footer class="app-footer">
+      <p>舞台中線對稱，以絕對地標網格標註</p>
+    </footer>
+  </div>
+
+  <!-- Load Database and Library Scripts -->
+  <script>
+    document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="daydata.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="lyrics.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="action_hints_data.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="https://jyhornglin-glitch.github.io/Dome_Position/card_hints_data.js?v=' + Date.now() + '"><\/script>');
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    document.write('<script src="app.js?v=' + Date.now() + '"><\/script>');
+  </script>
+</body>
+</html>

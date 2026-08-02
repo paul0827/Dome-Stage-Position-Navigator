@@ -1,0 +1,17 @@
+{
+  "name": "dome-position-navigator",
+  "version": "2.0.0",
+  "description": "Taipei Dome Stage Position Navigator with Express Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "author": "Antigravity",
+  "license": "ISC"
+}
