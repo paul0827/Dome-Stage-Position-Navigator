@@ -1333,24 +1333,27 @@
       // Draw coordinate label under the node
       if (pt.coord && pt.coord.text) {
         const labelText = pt.coord.text;
-        const bgWidth = (labelText.length * 5.2 + 6) * 0.625;
-        const bgHeight = 6.875;
-        const labelY = pt.pos.y + size / 2 + 6.5;
+        const fontSize = 8.5; // Clear, legible size across mobile and desktop SVG viewports
+        const bgWidth = labelText.length * fontSize * 0.65 + 7;
+        const bgHeight = fontSize * 1.45;
+        const labelY = pt.pos.y + size / 2 + bgHeight / 2 + 3.5;
 
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         labelBg.setAttribute('x', pt.pos.x - bgWidth / 2);
         labelBg.setAttribute('y', labelY - bgHeight / 2);
         labelBg.setAttribute('width', bgWidth);
         labelBg.setAttribute('height', bgHeight);
+        labelBg.setAttribute('rx', 3);
+        labelBg.setAttribute('ry', 3);
         labelBg.setAttribute('class', pt.role === 'current' ? 'path-label-bg bg-current' : 'path-label-bg');
         g.appendChild(labelBg);
 
         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         textEl.setAttribute('x', pt.pos.x);
-        textEl.setAttribute('y', labelY + 1.6);
+        textEl.setAttribute('y', labelY + fontSize * 0.35);
         textEl.setAttribute('text-anchor', 'middle');
         textEl.setAttribute('class', pt.role === 'current' ? 'path-label-text text-current' : 'path-label-text');
-        textEl.setAttribute('style', `font-size: 5px; font-weight: bold;`);
+        textEl.setAttribute('style', `font-size: ${fontSize}px; font-weight: bold;`);
         textEl.textContent = labelText;
         g.appendChild(textEl);
       }
