@@ -647,7 +647,13 @@
 
   // Render the complete 17-point formation table on the right panel.
   function renderFormationsTable() {
-    formationsList.innerHTML = '';
+    const listPart1 = document.getElementById('formationsListPart1');
+    const listPart2 = document.getElementById('formationsListPart2');
+    const singleList = document.getElementById('formationsList');
+
+    if (listPart1) listPart1.innerHTML = '';
+    if (listPart2) listPart2.innerHTML = '';
+    if (singleList) singleList.innerHTML = '';
     
     keyFormations.forEach((f, idx) => {
       const coordStr = getFormationCoordStr(currentPerformer, f.key) || '無';
@@ -690,7 +696,7 @@
       const isReferenceVideo = ytLink === formationReferenceVideos[f.key];
       const videoLabel = isReferenceVideo ? '參考影片' : (timeStr || 'YouTube');
       const timeBadgeHtml = timeStr 
-        ? `<a href="${ytLink}" target="_blank" class="col-time-badge" style="display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; color: var(--gold-color); background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); padding: 1.5px 6px; border-radius: var(--radius-sm); margin-top: 4px; text-decoration: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(251,191,36,0.18)'; this.style.color='#ffffff';" onmouseout="this.style.background='rgba(251,191,36,0.08)'; this.style.color='var(--gold-color)';"><i class="fa-brands fa-youtube" style="color: #ef4444; margin-right: 4px;"></i>${videoLabel}</a>` 
+        ? `<a href="${ytLink}" target="_blank" class="col-time-badge" style="display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; color: var(--gold-color); background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); padding: 1.5px 5px; border-radius: var(--radius-sm); margin-top: 3px; text-decoration: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(251,191,36,0.18)'; this.style.color='#ffffff';" onmouseout="this.style.background='rgba(251,191,36,0.08)'; this.style.color='var(--gold-color)';"><i class="fa-brands fa-youtube" style="color: #ef4444; margin-right: 3px;"></i>${videoLabel}</a>` 
         : '';
 
       // Calculate movement instructions for this item to show inside the row
@@ -730,8 +736,8 @@
       }
 
       const moveBadgeHtml = `
-        <span class="col-move-badge" style="display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; color: #fbbf24; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); padding: 1.5px 6px; border-radius: var(--radius-sm); margin-top: 4px; ${timeBadgeHtml ? 'margin-left: 6px;' : ''}">
-          <i class="fa-solid fa-person-walking" style="margin-right: 4px; color: #fbbf24;"></i>${moveInstructions}
+        <span class="col-move-badge" style="display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; color: #fbbf24; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); padding: 1.5px 5px; border-radius: var(--radius-sm); margin-top: 3px; ${timeBadgeHtml ? 'margin-left: 4px;' : ''}">
+          <i class="fa-solid fa-person-walking" style="margin-right: 3px; color: #fbbf24;"></i>${moveInstructions}
         </span>
       `;
 
@@ -760,7 +766,13 @@
         selectFormation(idx);
       });
 
-      formationsList.appendChild(itemRow);
+      if (idx < 12) {
+        if (listPart1) listPart1.appendChild(itemRow);
+        else if (singleList) singleList.appendChild(itemRow);
+      } else {
+        if (listPart2) listPart2.appendChild(itemRow);
+        else if (singleList) singleList.appendChild(itemRow);
+      }
     });
   }
 
@@ -1810,37 +1822,50 @@
       ctx.fillStyle = '#ffffff';
       ctx.font = "bold 20px 'Noto Sans TC', sans-serif";
       ctx.fillText(title, startX + 18, mapY + 33);
-      let y = mapY + 82;
-      formations.forEach((formation, offset) => {
+
+      const isCompact = formations.length > 9;
+      const yStep = isCompact ? 69 : 90;
+      const stickerSize = isCompact ? 48 : 60;
+      let y = mapY + (isCompact ? 68 : 82);
+
+      formations.forEach((formation) => {
         const index = keyFormations.indexOf(formation) + 1;
         const sticker = stickerImages[formation.key];
         const coord = getFormationCoordStr(currentPerformer, formation.key) || '未提供';
-        if (sticker) ctx.drawImage(sticker, startX + 16, y - 22, 60, 60);
+
+        if (sticker) {
+          ctx.drawImage(sticker, startX + 16, y - (isCompact ? 16 : 22), stickerSize, stickerSize);
+        }
+
         ctx.fillStyle = '#0f172a';
-        ctx.font = "bold 15px 'Noto Sans TC', sans-serif";
+        ctx.font = isCompact ? "bold 14px 'Noto Sans TC', sans-serif" : "bold 15px 'Noto Sans TC', sans-serif";
         const nameLines = wrapCanvasText(ctx, `${String(index).padStart(2, '0')}  ${formation.name}`, 225).slice(0, 2);
-        nameLines.forEach((line, lineIndex) => ctx.fillText(line, startX + 92, y + lineIndex * 17));
+        nameLines.forEach((line, lineIndex) => ctx.fillText(line, startX + (isCompact ? 76 : 92), y + lineIndex * (isCompact ? 15 : 17)));
+
         ctx.fillStyle = '#475569';
-        ctx.font = "14px 'Outfit', 'Noto Sans TC', sans-serif";
-        ctx.fillText(coord, startX + 92, y + 43);
+        ctx.font = isCompact ? "13px 'Outfit', 'Noto Sans TC', sans-serif" : "14px 'Outfit', 'Noto Sans TC', sans-serif";
+        ctx.fillText(coord, startX + (isCompact ? 76 : 92), y + (isCompact ? 32 : 43));
+
         const video = getYoutubeLinkForKey(formation.key);
         if (video) {
           ctx.fillStyle = video === formationReferenceVideos[formation.key] ? '#0369a1' : '#b91c1c';
-          ctx.font = "bold 12px 'Noto Sans TC', sans-serif";
-          ctx.fillText(video === formationReferenceVideos[formation.key] ? '參考影片' : 'YouTube', startX + 232, y + 43);
+          ctx.font = "bold 11px 'Noto Sans TC', sans-serif";
+          ctx.fillText(video === formationReferenceVideos[formation.key] ? '參考影片' : 'YouTube', startX + 236, y + (isCompact ? 32 : 43));
         }
+
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(startX + 16, y + 72);
-        ctx.lineTo(startX + columnW - 16, y + 72);
+        ctx.moveTo(startX + 16, y + (isCompact ? 48 : 72));
+        ctx.lineTo(startX + columnW - 16, y + (isCompact ? 48 : 72));
         ctx.stroke();
-        y += 90;
+
+        y += yStep;
       });
     };
 
-    drawSection('第一階段', keyFormations.slice(0, 9), listX, '#0f766e');
-    drawSection('第二階段', keyFormations.slice(9), listX + columnW + 24, '#7c3aed');
+    drawSection('第一部分 (第一階段)', keyFormations.slice(0, 12), listX, '#0f766e');
+    drawSection('第二部分 (第二階段)', keyFormations.slice(12), listX + columnW + 24, '#7c3aed');
     return canvas;
   }
 

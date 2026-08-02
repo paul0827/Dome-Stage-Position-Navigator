@@ -226,30 +226,54 @@
         <!-- Right Panel: Key Formations Table -->
         <section class="dashboard-list-panel card">
           <div class="panel-header">
-            <h3><i class="fa-solid fa-list-ol"></i> 17 個跑位定點對照表</h3>
+            <h3><i class="fa-solid fa-list-ol"></i> 17 個跑位定點對照表（第一部分 ＆ 第二部分）</h3>
             <span class="panel-subtitle">點選下方項目可在左側地圖高亮該位置</span>
           </div>
 
-          <!-- Steps List Table -->
-          <div class="formations-table-container">
-            <div class="table-row table-header">
-              <div class="col-num">項次</div>
-              <div class="col-name">演繹跑位隊形</div>
-              <div class="col-sticker">專屬地標貼紙</div>
-              <div class="col-coord">網格座標</div>
+          <!-- Steps List Table (2-Column Layout for Part 1 & Part 2) -->
+          <div class="formations-table-container-two-cols">
+            <!-- Part 1 Column Box -->
+            <div class="formations-col-box part-1-box">
+              <div class="table-section-header part-1-header">
+                <i class="fa-solid fa-layer-group" style="color: var(--teal-color); margin-right: 6px;"></i>
+                <span>第一部分 (第一階段：起點～08教育)</span>
+              </div>
+              <div class="table-row table-header mini-header">
+                <div class="col-num">項次</div>
+                <div class="col-name">演繹隊形</div>
+                <div class="col-sticker">地標貼紙</div>
+                <div class="col-coord">網格座標</div>
+              </div>
+              <div class="formations-list" id="formationsListPart1">
+                <!-- Rendered dynamically by JS -->
+              </div>
             </div>
-            <div class="formations-list" id="formationsList">
-              <!-- Rendered dynamically by JS -->
+
+            <!-- Part 2 Column Box -->
+            <div class="formations-col-box part-2-box">
+              <div class="table-section-header part-2-header">
+                <i class="fa-solid fa-layer-group" style="color: #a78bfa; margin-right: 6px;"></i>
+                <span>第二部分 (第二階段：09人文～11飛天)</span>
+              </div>
+              <div class="table-row table-header mini-header">
+                <div class="col-num">項次</div>
+                <div class="col-name">演繹隊形</div>
+                <div class="col-sticker">地標貼紙</div>
+                <div class="col-coord">網格座標</div>
+              </div>
+              <div class="formations-list" id="formationsListPart2">
+                <!-- Rendered dynamically by JS -->
+              </div>
             </div>
           </div>
 
           <!-- Video / Tutorial Links -->
           <div class="teach-links-group">
             <a href="https://www.canva.com/design/DAHEwGFN0bE/WwmURC9KB1OsNo8p5L35AQ/view?utm_content=DAHEwGFN0bE&utm_campaign=designshare&utm_medium=link&utm_source=viewer" target="_blank" class="teach-btn">
-              <i class="fa-solid fa-graduation-cap"></i> <span>第一階段驗收教學</span>
+              <i class="fa-solid fa-graduation-cap"></i> <span>第一部分 (第一階段驗收教學)</span>
             </a>
             <a href="https://reurl.cc/7Ez5ob" target="_blank" class="teach-btn second-phase">
-              <i class="fa-solid fa-graduation-cap"></i> <span>第二階段驗收教學</span>
+              <i class="fa-solid fa-graduation-cap"></i> <span>第二部分 (第二階段驗收教學)</span>
             </a>
           </div>
         </section>
