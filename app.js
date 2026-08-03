@@ -64,6 +64,7 @@
   // Topbar actions
   const changePerformerBtn = document.getElementById('changePerformerBtn');
   const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+  const screenshotPageBtn = document.getElementById('screenshotPageBtn');
 
   // Map settings
   const showFullTrajectory = document.getElementById('showFullTrajectory');
@@ -357,6 +358,10 @@
       appDashboard.style.display = 'none';
       appHeaderSearch.style.display = 'block';
       appHeaderSearch.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    screenshotPageBtn.addEventListener('click', () => {
+      downloadDashboardScreenshot(screenshotPageBtn);
     });
 
     // Download PDF listener (Show Range Selection Modal)
@@ -937,11 +942,16 @@
     const linesGroup = svgEl.querySelector('.grid-lines');
     const pathSegmentsGroup = svgEl.querySelector('#localPathSegments');
     const pathPointsGroup = svgEl.querySelector('#localPathPoints');
+    const contentGroup = svgEl.querySelector('#localGridContent') || svgEl;
+    const existingPathLabelsGroup = svgEl.querySelector('#localPathLabels');
 
     wmkGroup.innerHTML = '';
     linesGroup.innerHTML = '';
     pathSegmentsGroup.innerHTML = '';
     pathPointsGroup.innerHTML = '';
+    if (existingPathLabelsGroup) {
+      existingPathLabelsGroup.remove();
+    }
 
     const fields = getPerformerFields(currentPerformer);
     const homeCoord = parseCoordinate(fields.coordinate);
@@ -1247,25 +1257,16 @@
       if (!showFull && !isPathActive) continue;
 
       if (start.pos.x !== end.pos.x || start.pos.y !== end.pos.y) {
-        // Orthogonal L-shaped route: Horizontal first, then Vertical (X-then-Y)
-        const cornerX = end.pos.x;
-        const cornerY = start.pos.y;
-        
         let endX = end.pos.x;
         let endY = end.pos.y;
         
-        // Shorten the final segment slightly to avoid overlapping the node sticker
+        // Draw a direct diagonal route and shorten active arrows slightly before the node sticker.
         if (isPathActive) {
-          if (start.pos.y === end.pos.y) {
-            // Purely horizontal
-            endX = start.pos.x + 0.9 * (end.pos.x - start.pos.x);
-          } else {
-            // L-shape or purely vertical (ends with vertical segment)
-            endY = cornerY + 0.9 * (end.pos.y - cornerY);
-          }
+          endX = start.pos.x + 0.9 * (end.pos.x - start.pos.x);
+          endY = start.pos.y + 0.9 * (end.pos.y - start.pos.y);
         }
 
-        const pathD = `M ${start.pos.x} ${start.pos.y} L ${cornerX} ${cornerY} L ${endX} ${endY}`;
+        const pathD = `M ${start.pos.x} ${start.pos.y} L ${endX} ${endY}`;
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', pathD);
         path.setAttribute('fill', 'none');
@@ -1292,25 +1293,156 @@
     contentGroup.appendChild(pathLabelsGroup);
 
     const labelsToAppend = [];
+    const stickerSize = Math.max(12, Math.min(32, GRID_SPACING * 1.8));
+    const visiblePoints = pointsToDraw.filter(pt => showFull || pt.index === 0 || pt.index === fIdx || pt.index === fIdx - 1);
+    const parseSvgViewBounds = () => {
+      const viewBox = svgEl.getAttribute('viewBox') || '0 0 360 360';
+      const [left, top, width, height] = viewBox.split(/\s+/).map(Number);
+      if ([left, top, width, height].some(value => Number.isNaN(value))) {
+        return { left: 0, top: 0, right: 360, bottom: 360, width: 360, height: 360 };
+      }
+      return { left, top, right: left + width, bottom: top + height, width, height };
+    };
+    const currentViewBounds = parseSvgViewBounds();
+
+    const createBounds = (centerX, centerY, width, height) => ({
+      left: centerX - width / 2,
+      top: centerY - height / 2,
+      right: centerX + width / 2,
+      bottom: centerY + height / 2,
+      width,
+      height
+    });
+
+    const shiftBounds = (bounds, dx, dy) => ({
+      ...bounds,
+      left: bounds.left + dx,
+      right: bounds.right + dx,
+      top: bounds.top + dy,
+      bottom: bounds.bottom + dy
+    });
+
+    const clampBoundsToSvg = (bounds) => {
+      const margin = Math.max(6, Math.min(currentViewBounds.width, currentViewBounds.height) * 0.02);
+      let dx = 0;
+      let dy = 0;
+      if (bounds.left < currentViewBounds.left + margin) dx = currentViewBounds.left + margin - bounds.left;
+      if (bounds.right + dx > currentViewBounds.right - margin) dx = currentViewBounds.right - margin - bounds.right;
+      if (bounds.top < currentViewBounds.top + margin) dy = currentViewBounds.top + margin - bounds.top;
+      if (bounds.bottom + dy > currentViewBounds.bottom - margin) dy = currentViewBounds.bottom - margin - bounds.bottom;
+      return shiftBounds(bounds, dx, dy);
+    };
+
+    const boundsOverlap = (a, b, padding = 0) => !(
+      a.right + padding <= b.left ||
+      a.left - padding >= b.right ||
+      a.bottom + padding <= b.top ||
+      a.top - padding >= b.bottom
+    );
+
+    const overlapArea = (a, b) => {
+      const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return width * height;
+    };
+
+    const stickerBounds = visiblePoints.map(pt => ({
+      key: pt.key,
+      ...createBounds(pt.pos.x, pt.pos.y, stickerSize + 4, stickerSize + 4)
+    }));
+    const placedLabelBounds = [];
+    const labelPointByCoordinate = new Map();
+
+    const getCoordinateLabelKey = (pt) => (pt.coord.text || '無').trim() || '無';
+    const shouldCreateCoordinateLabel = (pt) =>
+      pt.coord && pt.coord.text;
+    const getCoordinateDisplayText = (text) => text === '無' ? '無座標' : text;
+    const getFormationNumber = (pt) => String(pt.index + 1).padStart(2, '0');
+    const estimateSvgTextWidth = (text, fontSize) => (
+      Array.from(text).reduce((sum, char) => sum + (/[\u4e00-\u9fff]/.test(char) ? fontSize : fontSize * 0.62), 0) + 10
+    );
+
+    visiblePoints.forEach(pt => {
+      if (!shouldCreateCoordinateLabel(pt)) return;
+
+      const labelKey = getCoordinateLabelKey(pt);
+      const existing = labelPointByCoordinate.get(labelKey);
+      if (!existing) {
+        labelPointByCoordinate.set(labelKey, { point: pt, members: [pt] });
+      } else {
+        existing.members.push(pt);
+        if (pt.role === 'current' || (existing.point.role !== 'current' && pt.index < existing.point.index)) {
+          existing.point = pt;
+        }
+      }
+    });
+
+    function findNonOverlappingLabelBounds(pt, labelWidth, labelHeight) {
+      const baseGap = 5;
+      const offsets = [baseGap, 10, 16, 24, 34, 46, 60, 78, 98];
+      const directions = [
+        { x: 0, y: 1 },
+        { x: 0, y: -1 },
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 1, y: 1 },
+        { x: -1, y: 1 },
+        { x: 1, y: -1 },
+        { x: -1, y: -1 }
+      ];
+      let best = null;
+
+      for (const offset of offsets) {
+        for (const direction of directions) {
+          const distanceX = direction.x === 0 ? 0 : stickerSize / 2 + labelWidth / 2 + offset;
+          const distanceY = direction.y === 0 ? 0 : stickerSize / 2 + labelHeight / 2 + offset;
+          const candidate = clampBoundsToSvg(createBounds(
+            pt.pos.x + direction.x * distanceX,
+            pt.pos.y + direction.y * distanceY,
+            labelWidth,
+            labelHeight
+          ));
+
+          const stickerPenalty = stickerBounds.reduce(
+            (sum, bounds) => sum + (boundsOverlap(candidate, bounds, 1) ? overlapArea(candidate, bounds) + 10000 : 0),
+            0
+          );
+          const labelPenalty = placedLabelBounds.reduce(
+            (sum, bounds) => sum + (boundsOverlap(candidate, bounds, 2) ? overlapArea(candidate, bounds) + 5000 : 0),
+            0
+          );
+          const score = stickerPenalty + labelPenalty + Math.abs(candidate.left + labelWidth / 2 - pt.pos.x) * 0.01 + Math.abs(candidate.top + labelHeight / 2 - pt.pos.y) * 0.01;
+
+          if (!best || score < best.score) {
+            best = { bounds: candidate, score };
+          }
+          if (stickerPenalty === 0 && labelPenalty === 0) {
+            placedLabelBounds.push(candidate);
+            return candidate;
+          }
+        }
+      }
+
+      placedLabelBounds.push(best.bounds);
+      return best.bounds;
+    }
 
     // 5. Draw Performer Nodes (Sticker Icons)
-    pointsToDraw.forEach(pt => {
-      // Render node only if current, prev, or full trajectory is on
-      const isVisible = showFull || pt.index === 0 || pt.index === fIdx || pt.index === fIdx - 1;
-      if (!isVisible) return;
-
+    visiblePoints.forEach(pt => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       let gClass = `path-point pt-${pt.key} role-${pt.role}`;
       if (pt.index === fIdx) gClass += ' active-formation';
       g.setAttribute('class', gClass);
       g.setAttribute('id', `local-point-${pt.key}`);
 
-      const size = Math.max(12, Math.min(32, GRID_SPACING * 1.8));
+      const size = stickerSize;
 
       // Draw the sticker PNG image
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       const displayType = getDisplayType(pt.key);
-      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `images/stickers/${displayType}_${getEnglishCategory(category)}.png`);
+      const stickerSrc = `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
+      img.setAttribute('href', stickerSrc);
+      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', stickerSrc);
       img.setAttribute('x', pt.pos.x - size / 2);
       img.setAttribute('y', pt.pos.y - size / 2);
       img.setAttribute('width', size);
@@ -1371,34 +1503,77 @@
       pathPointsGroup.appendChild(g);
 
       // Create coordinate label element (skip '無' text or starting point basic node)
-      if (pt.coord && pt.coord.text && pt.coord.text !== '無' && !pt.coord.isText && pt.key !== 'basic') {
+      const coordinateLabelGroup = shouldCreateCoordinateLabel(pt)
+        ? labelPointByCoordinate.get(getCoordinateLabelKey(pt))
+        : null;
+
+      if (coordinateLabelGroup && coordinateLabelGroup.point === pt) {
         const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         labelG.setAttribute('class', `label-group role-${pt.role}`);
+        labelG.setAttribute('data-anchor-x', pt.pos.x);
+        labelG.setAttribute('data-anchor-y', pt.pos.y);
+        labelG.setAttribute('data-label-key', getCoordinateLabelKey(pt));
         
-        const labelText = pt.coord.text;
+        const memberNumbers = coordinateLabelGroup.members
+          .slice()
+          .sort((a, b) => a.index - b.index)
+          .map(getFormationNumber);
+        const coordinateText = getCoordinateDisplayText(pt.coord.text);
         const fontSize = 9;
-        const bgWidth = labelText.length * fontSize * 0.65 + 8;
-        const bgHeight = fontSize * 1.5;
-        const labelY = pt.pos.y + size / 2 + bgHeight / 2 + 4;
+        const memberText = coordinateLabelGroup.members.length > 1 || pt.coord.text === '無'
+          ? memberNumbers.join(',')
+          : '';
+        const bgWidth = Math.max(
+          estimateSvgTextWidth(coordinateText, fontSize),
+          memberText ? estimateSvgTextWidth(memberText, 7.5) : 0
+        );
+        const bgHeight = memberText ? 24 : fontSize * 1.5;
+        const labelBounds = findNonOverlappingLabelBounds(pt, bgWidth, bgHeight);
+        const labelX = labelBounds.left + bgWidth / 2;
+        const labelY = labelBounds.top + bgHeight / 2;
+
+        if (coordinateLabelGroup.members.length > 1) {
+          coordinateLabelGroup.members.forEach(member => {
+            const leaderLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            leaderLine.setAttribute('x1', labelX);
+            leaderLine.setAttribute('y1', labelY);
+            leaderLine.setAttribute('x2', member.pos.x);
+            leaderLine.setAttribute('y2', member.pos.y);
+            leaderLine.setAttribute('class', 'label-leader-line');
+            leaderLine.setAttribute('data-label-key', getCoordinateLabelKey(pt));
+            pathSegmentsGroup.appendChild(leaderLine);
+          });
+        }
 
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        labelBg.setAttribute('x', pt.pos.x - bgWidth / 2);
-        labelBg.setAttribute('y', labelY - bgHeight / 2);
+        labelBg.setAttribute('x', labelBounds.left);
+        labelBg.setAttribute('y', labelBounds.top);
         labelBg.setAttribute('width', bgWidth);
         labelBg.setAttribute('height', bgHeight);
         labelBg.setAttribute('rx', 4);
         labelBg.setAttribute('ry', 4);
-        labelBg.setAttribute('class', pt.role === 'current' ? 'path-label-bg bg-current' : 'path-label-bg');
+        labelBg.setAttribute('class', 'path-label-bg');
         labelG.appendChild(labelBg);
 
         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textEl.setAttribute('x', pt.pos.x);
-        textEl.setAttribute('y', labelY + fontSize * 0.35);
+        textEl.setAttribute('x', labelX);
+        textEl.setAttribute('y', memberText ? labelBounds.top + 10 : labelY + fontSize * 0.35);
         textEl.setAttribute('text-anchor', 'middle');
-        textEl.setAttribute('class', pt.role === 'current' ? 'path-label-text text-current' : 'path-label-text');
+        textEl.setAttribute('class', 'path-label-text');
         textEl.setAttribute('style', `font-size: ${fontSize}px; font-weight: bold;`);
-        textEl.textContent = labelText;
+        textEl.textContent = coordinateText;
         labelG.appendChild(textEl);
+
+        if (memberText) {
+          const subTextEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          subTextEl.setAttribute('x', labelX);
+          subTextEl.setAttribute('y', labelBounds.top + 20);
+          subTextEl.setAttribute('text-anchor', 'middle');
+          subTextEl.setAttribute('class', 'path-label-subtext');
+          subTextEl.setAttribute('style', 'font-size: 7.5px; font-weight: 700;');
+          subTextEl.textContent = memberText;
+          labelG.appendChild(subTextEl);
+        }
 
         labelsToAppend.push({ element: labelG, isCurrent: pt.role === 'current' });
       }
@@ -1446,7 +1621,7 @@
       img.setAttribute('transform', `rotate(${-rotationAngle} ${cx} ${cy})`);
     });
 
-    document.querySelectorAll('.path-label-bg, .path-label-text').forEach(el => {
+    document.querySelectorAll('.path-label-bg, .path-label-text, .path-label-subtext').forEach(el => {
       const x = parseFloat(el.getAttribute('x'));
       const y = parseFloat(el.getAttribute('y'));
       const w = parseFloat(el.getAttribute('width') || 0);
@@ -1524,8 +1699,9 @@
   let initialZoom = 1.0;
 
   localGridSvg.addEventListener('mousedown', pointerDown);
-  localGridSvg.addEventListener('mousemove', pointerMove);
+  document.addEventListener('mousemove', pointerMove);
   document.addEventListener('mouseup', pointerUp);
+  window.addEventListener('blur', pointerUp);
 
   // Mouse wheel zoom
   localGridSvg.addEventListener('wheel', (e) => {
@@ -1539,13 +1715,17 @@
   document.addEventListener('touchend', pointerUp);
 
   function pointerDown(e) {
+    if (e.button !== 0) return;
+    e.preventDefault();
     isPointerDown = true;
     startX = e.clientX;
     startY = e.clientY;
+    localGridSvg.classList.add('is-dragging');
   }
 
   function pointerMove(e) {
     if (!isPointerDown) return;
+    e.preventDefault();
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     startX = e.clientX;
@@ -1560,6 +1740,7 @@
   function pointerUp() {
     isPointerDown = false;
     touchStartDist = 0;
+    localGridSvg.classList.remove('is-dragging');
   }
 
   function touchStart(e) {
@@ -1600,6 +1781,327 @@
       panY -= dy * zoomLevel * 0.8;
       updateSvgViewBox();
     }
+  }
+
+  // ==========================================================================
+  // Dashboard Screenshot Download Feature
+  // ==========================================================================
+
+  function sanitizeFilenamePart(value, fallback = 'screenshot') {
+    const cleaned = String(value || fallback)
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g, '-')
+      .replace(/\s+/g, '_');
+    return cleaned || fallback;
+  }
+
+  function saveCanvasAsPng(canvas, filename) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('無法產生截圖檔案。'));
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        resolve();
+      }, 'image/png');
+    });
+  }
+
+  async function buildStickerDataUrlMap(category) {
+    const stickerDataUrls = {};
+    const uniqueStickerSources = new Set(
+      keyFormations.map((formation) => {
+        const displayType = getDisplayType(formation.key);
+        return `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
+      })
+    );
+
+    for (const src of uniqueStickerSources) {
+      let dataUrl = '';
+      const renderedSticker = getRenderedSticker(src);
+      if (renderedSticker) {
+        try {
+          dataUrl = imageToDataUrl(renderedSticker);
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+
+      if (!dataUrl) {
+        try {
+          dataUrl = await loadImageAsDataUrl(src);
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+
+      if (dataUrl) {
+        stickerDataUrls[src] = dataUrl;
+        stickerDataUrls[new URL(src, window.location.href).href] = dataUrl;
+      }
+    }
+
+    return stickerDataUrls;
+  }
+
+  function repositionScreenshotLabels(clonedDocument) {
+    const svg = clonedDocument.getElementById('localGridSvg');
+    if (!svg) return;
+
+    const readRect = (el, padding = 0) => {
+      const x = parseFloat(el.getAttribute('x'));
+      const y = parseFloat(el.getAttribute('y'));
+      const width = parseFloat(el.getAttribute('width'));
+      const height = parseFloat(el.getAttribute('height'));
+      return {
+        left: x - padding,
+        top: y - padding,
+        right: x + width + padding,
+        bottom: y + height + padding,
+        width: width + padding * 2,
+        height: height + padding * 2
+      };
+    };
+
+    const createBounds = (centerX, centerY, width, height) => ({
+      left: centerX - width / 2,
+      top: centerY - height / 2,
+      right: centerX + width / 2,
+      bottom: centerY + height / 2,
+      width,
+      height
+    });
+
+    const overlap = (a, b, padding = 0) => !(
+      a.right + padding <= b.left ||
+      a.left - padding >= b.right ||
+      a.bottom + padding <= b.top ||
+      a.top - padding >= b.bottom
+    );
+
+    const overlapArea = (a, b) => {
+      const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return width * height;
+    };
+
+    const parseViewBounds = () => {
+      const viewBox = svg.getAttribute('viewBox') || '0 0 360 360';
+      const [left, top, width, height] = viewBox.split(/\s+/).map(Number);
+      if ([left, top, width, height].some(value => Number.isNaN(value))) {
+        return { left: 0, top: 0, right: 360, bottom: 360, width: 360, height: 360 };
+      }
+      return { left, top, right: left + width, bottom: top + height, width, height };
+    };
+    const viewBounds = parseViewBounds();
+
+    const shiftIntoSvg = (bounds) => {
+      const margin = Math.max(6, Math.min(viewBounds.width, viewBounds.height) * 0.02);
+      let dx = 0;
+      let dy = 0;
+      if (bounds.left < viewBounds.left + margin) dx = viewBounds.left + margin - bounds.left;
+      if (bounds.right + dx > viewBounds.right - margin) dx = viewBounds.right - margin - bounds.right;
+      if (bounds.top < viewBounds.top + margin) dy = viewBounds.top + margin - bounds.top;
+      if (bounds.bottom + dy > viewBounds.bottom - margin) dy = viewBounds.bottom - margin - bounds.bottom;
+      return {
+        ...bounds,
+        left: bounds.left + dx,
+        right: bounds.right + dx,
+        top: bounds.top + dy,
+        bottom: bounds.bottom + dy
+      };
+    };
+
+    const stickerBounds = Array.from(svg.querySelectorAll('image.svg-sticker-image')).map(img => readRect(img, 3));
+    const placedLabelBounds = [];
+    const seenLabels = new Set();
+
+    Array.from(svg.querySelectorAll('#localPathLabels .label-group')).forEach(group => {
+      const rect = group.querySelector('.path-label-bg');
+      const text = group.querySelector('.path-label-text');
+      const subText = group.querySelector('.path-label-subtext');
+      if (!rect || !text) return;
+
+      const labelText = text.textContent.trim();
+      const labelKey = group.getAttribute('data-label-key');
+      if (seenLabels.has(labelText)) {
+        Array.from(svg.querySelectorAll('.label-leader-line')).forEach(line => {
+          if (line.getAttribute('data-label-key') === labelKey) {
+            line.remove();
+          }
+        });
+        group.remove();
+        return;
+      }
+      seenLabels.add(labelText);
+
+      const width = parseFloat(rect.getAttribute('width'));
+      const height = parseFloat(rect.getAttribute('height'));
+      const anchorX = parseFloat(group.getAttribute('data-anchor-x')) || parseFloat(text.getAttribute('x'));
+      const anchorY = parseFloat(group.getAttribute('data-anchor-y')) || parseFloat(rect.getAttribute('y')) + height / 2;
+      const textOffsetY = parseFloat(text.getAttribute('y')) - (parseFloat(rect.getAttribute('y')) + height / 2);
+      const subTextOffsetY = subText
+        ? parseFloat(subText.getAttribute('y')) - (parseFloat(rect.getAttribute('y')) + height / 2)
+        : 0;
+      const stickerSize = Math.max(...stickerBounds.map(bounds => Math.max(bounds.width, bounds.height)), 16);
+      const offsets = [5, 10, 16, 24, 34, 46, 60, 76, 96, 118];
+      const directions = [
+        { x: 0, y: 1 },
+        { x: 0, y: -1 },
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 1, y: 1 },
+        { x: -1, y: 1 },
+        { x: 1, y: -1 },
+        { x: -1, y: -1 }
+      ];
+      let best = null;
+
+      for (const offset of offsets) {
+        for (const direction of directions) {
+          const distanceX = direction.x === 0 ? 0 : stickerSize / 2 + width / 2 + offset;
+          const distanceY = direction.y === 0 ? 0 : stickerSize / 2 + height / 2 + offset;
+          const candidate = shiftIntoSvg(createBounds(
+            anchorX + direction.x * distanceX,
+            anchorY + direction.y * distanceY,
+            width,
+            height
+          ));
+          const stickerPenalty = stickerBounds.reduce(
+            (sum, bounds) => sum + (overlap(candidate, bounds, 1) ? overlapArea(candidate, bounds) + 10000 : 0),
+            0
+          );
+          const labelPenalty = placedLabelBounds.reduce(
+            (sum, bounds) => sum + (overlap(candidate, bounds, 2) ? overlapArea(candidate, bounds) + 5000 : 0),
+            0
+          );
+          const score = stickerPenalty + labelPenalty;
+
+          if (!best || score < best.score) {
+            best = { bounds: candidate, score };
+          }
+          if (stickerPenalty === 0 && labelPenalty === 0) {
+            best = { bounds: candidate, score };
+            break;
+          }
+        }
+        if (best && best.score === 0) break;
+      }
+
+      const nextBounds = best.bounds;
+      rect.setAttribute('x', nextBounds.left);
+      rect.setAttribute('y', nextBounds.top);
+      const labelCenterX = nextBounds.left + width / 2;
+      const labelCenterY = nextBounds.top + height / 2;
+      text.setAttribute('x', labelCenterX);
+      text.setAttribute('y', nextBounds.top + height / 2 + textOffsetY);
+      if (subText) {
+        subText.setAttribute('x', labelCenterX);
+        subText.setAttribute('y', nextBounds.top + height / 2 + subTextOffsetY);
+      }
+      if (rotationAngle) {
+        rect.setAttribute('transform', `rotate(${-rotationAngle} ${labelCenterX} ${labelCenterY})`);
+        text.setAttribute('transform', `rotate(${-rotationAngle} ${labelCenterX} ${labelCenterY})`);
+        if (subText) {
+          subText.setAttribute('transform', `rotate(${-rotationAngle} ${labelCenterX} ${labelCenterY})`);
+        }
+      } else {
+        rect.removeAttribute('transform');
+        text.removeAttribute('transform');
+        if (subText) {
+          subText.removeAttribute('transform');
+        }
+      }
+      Array.from(svg.querySelectorAll('.label-leader-line')).forEach(line => {
+        if (line.getAttribute('data-label-key') === labelKey) {
+          line.setAttribute('x1', labelCenterX);
+          line.setAttribute('y1', labelCenterY);
+        }
+      });
+      placedLabelBounds.push(nextBounds);
+    });
+  }
+
+  async function downloadDashboardScreenshot(btnElement) {
+    if (!currentPerformer) return;
+
+    if (typeof window.html2canvas !== 'function') {
+      alert('截圖工具尚未載入完成，請稍後再試一次。');
+      return;
+    }
+
+    const originalHtml = btnElement.innerHTML;
+    btnElement.disabled = true;
+    btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 截圖中...`;
+
+    try {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      drawLocalGridPath();
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      const fields = getPerformerFields(currentPerformer);
+      const stickerDataUrls = await buildStickerDataUrlMap(fields.category);
+      const target = document.querySelector('.dashboard-body') || appDashboard;
+      const canvas = await window.html2canvas(target, {
+        backgroundColor: '#0b0f19',
+        scale: Math.min(2, window.devicePixelRatio || 1.5),
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        width: target.scrollWidth,
+        height: target.scrollHeight,
+        windowWidth: Math.max(document.documentElement.clientWidth, target.scrollWidth),
+        windowHeight: Math.max(document.documentElement.clientHeight, target.scrollHeight),
+        onclone: (clonedDocument) => {
+          const clonedButton = clonedDocument.getElementById('screenshotPageBtn');
+          if (clonedButton) {
+            clonedButton.disabled = false;
+            clonedButton.innerHTML = originalHtml;
+          }
+
+          clonedDocument.querySelectorAll('#localGridSvg image.svg-sticker-image').forEach((svgImg) => {
+            const href = svgImg.getAttribute('href') || svgImg.getAttribute('xlink:href') || svgImg.href?.baseVal || '';
+            const dataUrl = stickerDataUrls[href];
+            if (dataUrl) {
+              svgImg.setAttribute('href', dataUrl);
+              svgImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+            }
+          });
+
+          repositionScreenshotLabels(clonedDocument);
+        }
+      });
+
+      const filename = [
+        sanitizeFilenamePart(currentDisplayName || fields.coordinate),
+        sanitizeFilenamePart(fields.coordinate),
+        '地圖與對照表截圖.png'
+      ].join('_');
+
+      await saveCanvasAsPng(canvas, filename);
+      btnElement.innerHTML = `<i class="fa-solid fa-check"></i> 已截圖`;
+    } catch (err) {
+      console.error(err);
+      alert(`網頁截圖失敗：${err.message || err}`);
+      btnElement.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 出錯`;
+    }
+
+    setTimeout(() => {
+      btnElement.disabled = false;
+      btnElement.innerHTML = originalHtml;
+    }, 2000);
   }
 
   // ==========================================================================

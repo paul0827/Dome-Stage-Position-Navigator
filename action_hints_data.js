@@ -1,4 +1,4 @@
-// Action Hints Database — 自動由 import_docx_action_hints.py 產生，請勿手動修改
+﻿// Action Hints Database — 自動由 import_docx_action_hints.py 產生，請勿手動修改
 const ACTION_HINTS_DATA = {
   "circle": [
     {
@@ -22,11 +22,15 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
+          "content": "巴利文唱頌無量義經(合掌拿燈，不開燈)"
+        },
+        {
+          "type": "text",
           "content": "OS:靈山法會「不散」(內轉向圓心)"
         },
         {
           "type": "text",
-          "content": "無量義經廣傳 (合掌拿燈，不開燈)"
+          "content": "無量義經廣傳"
         },
         {
           "type": "text",
@@ -82,7 +86,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "(結束轉向圓心)"
+          "content": "(結束轉向甲舞台)"
         }
       ]
     },
@@ -177,7 +181,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "os 失神喪志，呻吟哀嘆，骨瘦呤叮毀容顏"
+          "content": "OS: 失神喪志，呻吟哀嘆，骨瘦呤叮毀容顏"
         },
         {
           "type": "text",
@@ -218,15 +222,19 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "OS：生老病死，實在「苦不堪言」。(全體回正)"
+          "content": "OS：生老病死，實在「苦不堪言」。(合十回正)"
         },
         {
           "type": "text",
-          "content": "「北門前」(全體合掌轉面向法師之圓弧線)竹林間，修行道人相莊嚴。"
+          "content": "「北門前」(轉面向法師之圓弧線)竹林間 修行道人相莊嚴"
         },
         {
           "type": "text",
-          "content": "「夜深人靜」(轉面向圓心，腳尖對線)離宮殿，不悟真理誓不還。"
+          "content": "「夜深人靜」(轉面向圓心，腳尖對線)離宮殿 不悟真理誓不還"
+        },
+        {
+          "type": "text",
+          "content": "以上4句「北門前~誓不還」一定一定一定要大聲唱誦"
         },
         {
           "type": "text",
@@ -279,11 +287,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "黃老師OS："
-        },
-        {
-          "type": "text",
-          "content": "轉識成智 成佛道"
+          "content": "黃老師OS：轉識成智 成佛道"
         },
         {
           "type": "image",
@@ -307,6 +311,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "image",
           "src": "images/action_hints/hint_10.png"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_11.png"
         },
         {
           "type": "text",
@@ -346,10 +354,6 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_11.jpg"
-        },
-        {
-          "type": "image",
           "src": "images/action_hints/hint_12.jpg"
         },
         {
@@ -358,11 +362,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_14.jpg"
+          "src": "images/action_hints/hint_14.png"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_15.jpg"
+          "src": "images/action_hints/hint_15.png"
         },
         {
           "type": "image",
@@ -375,6 +379,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "image",
           "src": "images/action_hints/hint_18.jpg"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_19.jpg"
         }
       ]
     },
@@ -383,11 +391,11 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "image",
-          "src": "images/action_hints/hint_19.png"
+          "src": "images/action_hints/hint_20.png"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_20.jpg"
+          "src": "images/action_hints/hint_21.jpg"
         },
         {
           "type": "text",
@@ -395,7 +403,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "第一聲「 哐」回正、 手放大腿二側"
+          "content": "第一聲「哐」回正、 手放大腿二側"
         },
         {
           "type": "text",
@@ -407,7 +415,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "仿若實境(拿燈)再現(開綠燈)"
+          "content": "仿若實境(拿燈)再「現」(開綠燈)"
         },
         {
           "type": "text",
@@ -443,10 +451,6 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_21.jpg"
-        },
-        {
-          "type": "image",
           "src": "images/action_hints/hint_22.jpg"
         },
         {
@@ -456,6 +460,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "image",
           "src": "images/action_hints/hint_24.jpg"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_25.jpg"
         }
       ]
     }
@@ -470,7 +478,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_25.jpg"
+          "src": "images/action_hints/hint_26.jpg"
+        },
+        {
+          "type": "text",
+          "content": "OS: 只要有人間菩薩，貧窮與苦難的人，就有機會得到救助，我要把佛法推向人間"
         },
         {
           "type": "text",
@@ -494,19 +506,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "我決定要消弭貧窮"
-        },
-        {
-          "type": "text",
-          "content": "扛天下米籮"
-        },
-        {
-          "type": "text",
-          "content": "讓人人都能力行菩薩道"
+          "content": "OS:我決定要消滅貧窮，「扛天下米籮」，讓人人力行「菩薩道」。"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_26.png"
+          "src": "images/action_hints/hint_27.png"
         }
       ]
     }
@@ -521,27 +525,59 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_27.png"
+          "src": "images/action_hints/hint_28.png"
         },
         {
           "type": "text",
-          "content": "OS：你去煮麵線(台語)→舞臺的人上舞台"
+          "content": "OS:「你去煮麵線」→舞臺的人上舞台面向甲舞台"
         },
         {
           "type": "text",
-          "content": "OS：我的師父自己沒東西吃，卻是念念眾生的苦。"
+          "content": "多煮一些，吃完才會飽，啊油要多放一些，胃比較舒服。下一餐都不知道在哪裡？油和麵線先去和普明寺借，割草的工資是借的，啊這!又要借，借的難道不用還嗎，我的師父自己沒得吃，卻是念念眾生的苦。"
         },
         {
           "type": "text",
-          "content": "嗯! 「我認定」了這個師父了 (台語) →合掌轉向法師"
+          "content": "嗯!「我認定」這個師父了"
         },
         {
           "type": "text",
-          "content": "結束後下舞台，全體回基本隊形正面向甲舞臺。"
+          "content": "→合掌轉向法師"
+        },
+        {
+          "type": "text",
+          "content": "靜思家風，一日不作，一日不食。"
+        },
+        {
+          "type": "text",
+          "content": "法身大士，慈悲菩薩"
+        },
+        {
+          "type": "text",
+          "content": "其心禪寂，常在三昧"
+        },
+        {
+          "type": "text",
+          "content": "恬安淡泊，無為無欲"
+        },
+        {
+          "type": "text",
+          "content": "顛倒亂想，不復得入"
+        },
+        {
+          "type": "text",
+          "content": "克勤、克儉、克難，菩薩行"
+        },
+        {
+          "type": "text",
+          "content": "守志奉道，刻苦修行"
+        },
+        {
+          "type": "text",
+          "content": "結束後下舞台，全體回基本隊形45度面向甲舞臺。"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_28.jpg"
+          "src": "images/action_hints/hint_29.jpg"
         }
       ]
     }
@@ -556,19 +592,19 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_29.jpg"
-        },
-        {
-          "type": "image",
           "src": "images/action_hints/hint_30.jpg"
         },
         {
-          "type": "text",
-          "content": "OS:咦!這裡怎麼有一灘血啊? 換成LOGO隊形，到位先面向甲舞台"
+          "type": "image",
+          "src": "images/action_hints/hint_31.jpg"
         },
         {
           "type": "text",
-          "content": "OS:師父我們需要「你」→轉自己的方向"
+          "content": "OS:咦，怎麼會有一灘血……「三位修女」→換成LOGO隊形，到位先面向甲舞台"
+        },
+        {
+          "type": "text",
+          "content": "OS:師父我們「需要你」→轉自己的方向"
         },
         {
           "type": "text",
@@ -623,7 +659,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_31.png"
+          "src": "images/action_hints/hint_32.png"
         },
         {
           "type": "text",
@@ -647,11 +683,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_32.jpg"
+          "src": "images/action_hints/hint_33.png"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_33.jpg"
+          "src": "images/action_hints/hint_34.jpg"
         }
       ]
     },
@@ -664,11 +700,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_34.jpg"
+          "src": "images/action_hints/hint_35.jpg"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_35.jpg"
+          "src": "images/action_hints/hint_36.jpg"
         },
         {
           "type": "text",
@@ -715,7 +751,7 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "image",
-          "src": "images/action_hints/hint_36.jpg"
+          "src": "images/action_hints/hint_37.jpg"
         },
         {
           "type": "text",
@@ -732,6 +768,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "text",
           "content": "【慈善ending 無量義經．德行品】"
+        },
+        {
+          "type": "text",
+          "content": "(非LOGO者做手語動作；LOGO者同點一盞燈動作)"
         },
         {
           "type": "text",
@@ -766,16 +806,8 @@ const ACTION_HINTS_DATA = {
           "content": "為癲狂慌亂作正念"
         },
         {
-          "type": "text",
-          "content": "非LOGO者做手語動作"
-        },
-        {
-          "type": "text",
-          "content": "LOGO者同點一盞燈動作"
-        },
-        {
           "type": "image",
-          "src": "images/action_hints/hint_37.jpg"
+          "src": "images/action_hints/hint_38.jpg"
         }
       ]
     }
@@ -790,11 +822,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_38.jpg"
+          "src": "images/action_hints/hint_39.jpg"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_39.jpg"
+          "src": "images/action_hints/hint_40.png"
         }
       ]
     },
@@ -819,7 +851,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_40.jpg"
+          "src": "images/action_hints/hint_41.jpg"
         }
       ]
     },
@@ -832,7 +864,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_41.jpg"
+          "src": "images/action_hints/hint_42.jpg"
         },
         {
           "type": "text",
@@ -876,7 +908,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_42.jpg"
+          "src": "images/action_hints/hint_43.jpg"
         }
       ]
     },
@@ -884,8 +916,12 @@ const ACTION_HINTS_DATA = {
       "title": "16.四弘誓願/藍向甲舞台斜線；白向法師斜線",
       "details": [
         {
+          "type": "text",
+          "content": "https://youtu.be/FHv_4kQxo9M?si=wUykg41LX2zTjyJy&t=5"
+        },
+        {
           "type": "image",
-          "src": "images/action_hints/hint_43.jpg"
+          "src": "images/action_hints/hint_44.jpg"
         }
       ]
     },
@@ -894,7 +930,7 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
-          "content": "OS:師父您怎麼說，我怎麼做(上舞台者出發，全部的人到位先面向甲舞台)"
+          "content": "OS:師父您怎麼說，「我怎麼做」(上舞台者出發，全部的人到位先面向甲舞台)"
         },
         {
           "type": "text",
@@ -902,7 +938,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "蛤?三千萬還不到？不過，「萬里長城」(白色內轉至法師方向)也是從一塊磚開始的。"
+          "content": "蛤?三千萬還不到？不過，「萬里長城」(白色轉向法師方向，藍色轉向甲舞台)也是從一塊磚開始的。"
         },
         {
           "type": "text",
@@ -938,7 +974,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_44.png"
+          "src": "images/action_hints/hint_45.png"
         }
       ]
     }
@@ -953,7 +989,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_45.jpg"
+          "src": "images/action_hints/hint_46.jpg"
         }
       ]
     },
@@ -1002,11 +1038,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_46.jpg"
+          "src": "images/action_hints/hint_47.jpg"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_47.jpg"
+          "src": "images/action_hints/hint_48.jpg"
         }
       ]
     }
@@ -1021,7 +1057,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_48.jpg"
+          "src": "images/action_hints/hint_49.jpg"
         }
       ]
     },
@@ -1046,7 +1082,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "救人一命無損己身(收)"
+          "content": "來唷!...(聽到OS就收)"
         },
         {
           "type": "text",
@@ -1054,7 +1090,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "那個人就是你"
+          "content": "那個人就是你(講完轉向甲舞台，兩腳夾線)"
         },
         {
           "type": "text",
@@ -1082,7 +1118,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_49.jpg"
+          "src": "images/action_hints/hint_50.png"
         }
       ]
     },
@@ -1095,13 +1131,21 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_50.jpg"
+          "src": "images/action_hints/hint_51.png"
         }
       ]
     },
     {
       "title": "【能捨一切諸難捨】",
       "details": [
+        {
+          "type": "text",
+          "content": "「那一念」(合掌轉向：小V面法師；大V內側面甲舞台；大V外側不轉)"
+        },
+        {
+          "type": "text",
+          "content": "救人一命，無損己身。"
+        },
         {
           "type": "text",
           "content": "能捨一切諸難捨"
@@ -1156,7 +1200,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_51.png"
+          "src": "images/action_hints/hint_52.png"
         }
       ]
     }
@@ -1166,8 +1210,20 @@ const ACTION_HINTS_DATA = {
       "title": "19.說法品梵唄",
       "details": [
         {
+          "type": "text",
+          "content": "東班https://youtu.be/ZSzzxOEqoOs"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/OAvy1CPy1Eo"
+        },
+        {
           "type": "image",
-          "src": "images/action_hints/hint_52.png"
+          "src": "images/action_hints/hint_53.png"
+        },
+        {
+          "type": "text",
+          "content": "【說法品梵唄】"
         },
         {
           "type": "text",
@@ -1199,7 +1255,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_53.jpg"
+          "src": "images/action_hints/hint_54.jpg"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_55.png"
         }
       ]
     },
@@ -1212,7 +1272,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_54.png"
+          "src": "images/action_hints/hint_56.png"
         },
         {
           "type": "text",
@@ -1236,7 +1296,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_55.png"
+          "src": "images/action_hints/hint_57.png"
         }
       ]
     },
@@ -1245,11 +1305,15 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
-          "content": "https://youtu.be/_WHbKMU04Rs?si=jfChGKr80xAr7jT1"
+          "content": "東班https://youtu.be/h_7S9z72tGg"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/zfGeXvsB6n0"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_56.png"
+          "src": "images/action_hints/hint_58.png"
         },
         {
           "type": "text",
@@ -1273,7 +1337,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_57.png"
+          "src": "images/action_hints/hint_59.png"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_60.png"
         }
       ]
     },
@@ -1282,11 +1350,15 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
-          "content": "https://youtu.be/pLSPo2sfaD4?si=VKtScfeX4g0SAWwV"
+          "content": "東班https://youtu.be/h_27YO8HSWc"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/cu3U0lXUKbs"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_58.png"
+          "src": "images/action_hints/hint_61.png"
         },
         {
           "type": "text",
@@ -1318,7 +1390,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_59.png"
+          "src": "images/action_hints/hint_62.png"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_63.png"
         }
       ]
     },
@@ -1327,11 +1403,15 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
-          "content": "https://youtu.be/_TfFOhQev8Q?si=bVSoPHw88K7Y5BiP"
+          "content": "東班https://youtu.be/mCzywnjw7w4"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/TPAmJ9mh0LY"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_60.png"
+          "src": "images/action_hints/hint_64.png"
         },
         {
           "type": "text",
@@ -1371,7 +1451,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_61.png"
+          "src": "images/action_hints/hint_65.png"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_66.png"
         }
       ]
     },
@@ -1380,11 +1464,15 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
-          "content": "https://youtu.be/yXNNtT4xq-w?si=kwlV3QBvSpuSUSJt"
+          "content": "東班https://youtu.be/DwHBrN8fmJE"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/Uq29ZgsvxaM"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_62.png"
+          "src": "images/action_hints/hint_67.png"
         },
         {
           "type": "text",
@@ -1428,7 +1516,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_63.png"
+          "src": "images/action_hints/hint_68.png"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_69.png"
         }
       ]
     },
@@ -1436,8 +1528,12 @@ const ACTION_HINTS_DATA = {
       "title": "25.教聯會曲目：藥草喻",
       "details": [
         {
+          "type": "text",
+          "content": "https://www.youtube.com/watch?v=8ks62kXmDV4"
+        },
+        {
           "type": "image",
-          "src": "images/action_hints/hint_64.png"
+          "src": "images/action_hints/hint_70.png"
         },
         {
           "type": "text",
@@ -1485,7 +1581,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_65.png"
+          "src": "images/action_hints/hint_71.png"
         }
       ]
     }
@@ -1504,7 +1600,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_66.png"
+          "src": "images/action_hints/hint_72.png"
         },
         {
           "type": "text",
@@ -1552,11 +1648,11 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_67.png"
+          "src": "images/action_hints/hint_73.png"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_68.png"
+          "src": "images/action_hints/hint_74.png"
         }
       ]
     },
@@ -1564,8 +1660,12 @@ const ACTION_HINTS_DATA = {
       "title": "27.父母恩重難報經(六日場專有)",
       "details": [
         {
+          "type": "text",
+          "content": "https://youtu.be/rB_MHSQ5lcU"
+        },
+        {
           "type": "image",
-          "src": "images/action_hints/hint_69.png"
+          "src": "images/action_hints/hint_75.png"
         },
         {
           "type": "text",
@@ -1613,7 +1713,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_70.png"
+          "src": "images/action_hints/hint_76.png"
         },
         {
           "type": "text",
@@ -1657,7 +1757,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_71.png"
+          "src": "images/action_hints/hint_77.png"
         }
       ]
     }
@@ -1669,6 +1769,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "text",
           "content": "https://youtu.be/SM7ZEOxHPfI?si=VuUGQOAcxqbCaBAj"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_78.png"
         },
         {
           "type": "text",
@@ -1700,7 +1804,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_72.png"
+          "src": "images/action_hints/hint_79.png"
         }
       ]
     },
@@ -1710,6 +1814,10 @@ const ACTION_HINTS_DATA = {
         {
           "type": "text",
           "content": "https://youtu.be/BXKq16WyqcE?si=zIpS1VLsZlKeRtsl"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_80.png"
         },
         {
           "type": "text",
@@ -1741,13 +1849,21 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_73.png"
+          "src": "images/action_hints/hint_81.png"
         }
       ]
     },
     {
       "title": "30.環保志工",
       "details": [
+        {
+          "type": "text",
+          "content": "https://youtu.be/UvAfTVN9A2c"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_82.png"
+        },
         {
           "type": "text",
           "content": "【曲目：無量義經說法品】"
@@ -1758,23 +1874,39 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "text",
-          "content": "法譬如水能洗垢 海上撈垃圾"
+          "content": "法譬如水能洗垢"
         },
         {
           "type": "text",
-          "content": "若井若池若江河 觀音垃圾山"
+          "content": "「海」上撈垃「圾」"
         },
         {
           "type": "text",
-          "content": "溪渠大海悉能洗 海邊淨灘"
+          "content": "若井若池若江河"
         },
         {
           "type": "text",
-          "content": "洗垢法水亦如是 清流繞全球"
+          "content": "「觀」音垃圾「山」"
+        },
+        {
+          "type": "text",
+          "content": "溪渠大海悉能洗"
+        },
+        {
+          "type": "text",
+          "content": "「海」邊淨「灘」"
+        },
+        {
+          "type": "text",
+          "content": "洗垢法水亦如是"
+        },
+        {
+          "type": "text",
+          "content": "清流繞全球"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_74.png"
+          "src": "images/action_hints/hint_83.png"
         }
       ]
     },
@@ -1783,84 +1915,123 @@ const ACTION_HINTS_DATA = {
       "details": [
         {
           "type": "text",
+          "content": "https://youtu.be/7oX93yKqvuo"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_84.png"
+        },
+        {
+          "type": "text",
           "content": "【曲目：無量義經說法品】"
         },
         {
           "type": "text",
-          "content": "佛轉法輪四真諦"
+          "content": "「佛轉」(合掌)"
         },
         {
           "type": "text",
-          "content": "諸法本來是空寂"
+          "content": "法輪「四真諦」（從甲舞台轉向箭頭方向）"
         },
         {
           "type": "text",
-          "content": "代謝不住 念念生滅"
+          "content": "諸法本來是「空寂」（依照阿妙師姊所定義的框高跪）"
         },
         {
           "type": "text",
-          "content": "文辭是一 眾生解異"
+          "content": "等登等登（高跪變坐跪）"
         },
         {
           "type": "text",
-          "content": "法性無差 眾生四相"
+          "content": "等登等登（站者開始踏步）"
         },
         {
           "type": "text",
-          "content": "文理真正 尊無過上"
+          "content": "代謝不住，念念生滅，"
         },
         {
           "type": "text",
-          "content": "一生無量 無量一生"
+          "content": "文辭是一，眾生解異，"
         },
         {
           "type": "text",
-          "content": "佛法廣演 眾生普應"
+          "content": "法性無差，眾生四相，"
         },
         {
           "type": "text",
-          "content": "如是甚深 無上大乘"
+          "content": "文理真正，"
         },
         {
           "type": "text",
-          "content": "菩薩當修 無量義經"
+          "content": "尊無過上（合十34、站的右後轉180度、跪的僅合十）"
         },
         {
           "type": "text",
-          "content": "如是甚深 無上大乘"
+          "content": "一生無量，無量一生，"
         },
         {
           "type": "text",
-          "content": "菩薩當修 無量義經"
+          "content": "佛法廣演，眾生普應，"
         },
         {
           "type": "text",
-          "content": "無量義經"
+          "content": "如是甚深，無上大乘，"
+        },
+        {
+          "type": "text",
+          "content": "菩薩當修，無量義經。"
+        },
+        {
+          "type": "text",
+          "content": "如是甚深（站者腳停合十，跪者壓腿起合十）"
+        },
+        {
+          "type": "text",
+          "content": "無上大乘（站的合十右後轉180度向箭頭方向、由跪而起立者，因方向本就朝向箭頭方向，故方向維持不動）"
+        },
+        {
+          "type": "text",
+          "content": "菩薩當修，無量義經。（比動作）"
+        },
+        {
+          "type": "text",
+          "content": "無量（拿燈）義經（藍色燈舉高；白色合掌在胸口）。"
+        },
+        {
+          "type": "text",
+          "content": "OS:留給子孫一個「乾淨的地球」。(藍色合掌在胸口；白色燈舉高)"
+        },
+        {
+          "type": "text",
+          "content": "一粒毫芒即為種 漸成菩提功德林(講完收燈)"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_75.png"
+          "src": "images/action_hints/hint_85.png"
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_76.png"
-        }
-      ]
-    },
-    {
-      "title": "32.開經書",
-      "details": [
-        {
-          "type": "image",
-          "src": "images/action_hints/hint_77.png"
+          "src": "images/action_hints/hint_86.png"
         }
       ]
     }
   ],
   "fiveContinents1": [
     {
-      "title": "說明",
+      "title": "32.開經書",
       "details": [
+        {
+          "type": "text",
+          "content": "東班https://youtu.be/p2KSIGqj5VE"
+        },
+        {
+          "type": "text",
+          "content": "西班https://youtu.be/dyWGw6dC88I"
+        },
+        {
+          "type": "image",
+          "src": "images/action_hints/hint_87.png"
+        },
         {
           "type": "text",
           "content": "【曲目：無量義經功德品】"
@@ -1883,7 +2054,7 @@ const ACTION_HINTS_DATA = {
         },
         {
           "type": "image",
-          "src": "images/action_hints/hint_78.png"
+          "src": "images/action_hints/hint_88.png"
         }
       ]
     }
@@ -1896,3 +2067,4 @@ const ACTION_HINTS_DATA = {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ACTION_HINTS_DATA;
 }
+

@@ -521,6 +521,8 @@ body {
 .topbar-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn-icon {
@@ -544,6 +546,11 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.btn-icon:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
 .btn-icon.btn-gold {
   background: var(--gold-color);
   color: #0b0f19;
@@ -553,6 +560,17 @@ body {
 
 .btn-icon.btn-gold:hover {
   background: #f59e0b;
+}
+
+.btn-icon.btn-blue {
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--blue-color);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+.btn-icon.btn-blue:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.18);
+  color: #ffffff;
 }
 
 /* Dashboard Body Split Panels */
@@ -590,9 +608,12 @@ body {
   max-height: 520px;
   display: block;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
-#localGridSvg:active {
+#localGridSvg:active,
+#localGridSvg.is-dragging {
   cursor: grabbing;
 }
 
@@ -735,6 +756,13 @@ body {
   opacity: 0.4;
 }
 
+.label-leader-line {
+  stroke: rgba(15, 23, 42, 0.42);
+  stroke-width: 0.8px;
+  stroke-dasharray: 2, 2;
+  pointer-events: none;
+}
+
 /* Point Stickers on SVG */
 .svg-sticker-image {
   cursor: pointer;
@@ -774,7 +802,14 @@ body {
   font-weight: 700;
 }
 
-.path-label-text.text-current {
+.path-label-subtext {
+  fill: #cbd5e1;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+}
+
+.path-label-text.text-current,
+.path-label-subtext.text-current {
   fill: #0f172a;
 }
 
@@ -1385,6 +1420,22 @@ body {
   
   .wizard-actions {
     min-width: unset;
+  }
+
+  .dashboard-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .topbar-actions .btn-icon {
+    flex: 1 1 150px;
+    justify-content: center;
   }
   
   .dashboard-body {
