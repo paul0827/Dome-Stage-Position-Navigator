@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>大巨蛋演繹個人定位系統</title>
-  <!-- 防護：禁止被嵌入 iframe、防止外連洩漏網址 -->
+  <!-- 防護：禁止被嵌入 iframe、防止外連洩漏網址、禁止搜尋引擎索引 -->
+  <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'">
   <meta name="referrer" content="no-referrer">
   <script>
@@ -24,6 +25,18 @@
   <link rel="stylesheet" href="style.css?v=2.4.0">
 </head>
 <body>
+  <!-- Site access gate (server mode: requires password before app loads) -->
+  <div id="siteGateOverlay" style="position: fixed; inset: 0; z-index: 99999; display: none; align-items: center; justify-content: center; background: #0b0f19;">
+    <div style="max-width: 340px; width: 100%; margin: 0 20px; padding: 30px 26px; border-radius: 14px; background: #1e293b; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 20px 60px rgba(0,0,0,0.55); text-align: center; box-sizing: border-box;">
+      <div style="font-size: 34px; margin-bottom: 10px;"><i class="fa-solid fa-crosshairs" style="color: #0d9488;"></i></div>
+      <h2 style="color: #f8fafc; font-size: 18px; margin: 0 0 6px;">大巨蛋演繹定位系統</h2>
+      <p style="color: #94a3b8; font-size: 13px; margin: 0 0 18px;">請輸入使用密碼以進入系統</p>
+      <input type="password" id="siteGatePassword" placeholder="輸入使用密碼..." autocomplete="off" style="width: 100%; padding: 11px 13px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #f8fafc; font-size: 14px; box-sizing: border-box; outline: none;">
+      <button id="siteGateSubmit" style="width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 8px; background: #0d9488; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;">進入系統</button>
+      <p id="siteGateMsg" style="color: #f87171; font-size: 12px; margin: 12px 0 0; min-height: 16px;"></p>
+    </div>
+  </div>
+
   <!-- Ambient background glow spots -->
   <div class="glow-bg">
     <div class="glow-circle blue"></div>
@@ -362,14 +375,8 @@
     </footer>
   </div>
 
-  <!-- Load Database and Library Scripts -->
-  <script>
-    document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');
-    document.write('<script src="daydata.js?v=' + Date.now() + '"><\/script>');
-    document.write('<script src="lyrics.js?v=' + Date.now() + '"><\/script>');
-    document.write('<script src="action_hints_data.js?v=' + Date.now() + '"><\/script>');
-    document.write('<script src="https://jyhornglin-glitch.github.io/Dome_Position/card_hints_data.js?v=' + Date.now() + '"><\/script>');
-  </script>
+  <!-- Load Bootstrap (site gate + authenticated data loading) -->
+  <script src="bootstrap.js?v=2.5.0"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     document.write('<script src="app.js?v=' + Date.now() + '"><\/script>');

@@ -110,8 +110,14 @@
 
   // Initial setup
   window.addEventListener('DOMContentLoaded', () => {
-    initSessions();
-    setupEventListeners();
+    const boot = window.SITE_BOOT_READY || Promise.resolve();
+    boot.then(() => {
+      initSessions();
+      setupEventListeners();
+    }).catch(() => {
+      initSessions();
+      setupEventListeners();
+    });
   });
 
   // Mapped display sticker assets key mapping
