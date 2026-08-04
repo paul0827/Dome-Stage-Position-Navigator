@@ -1796,6 +1796,34 @@
     return stickerDataUrls;
   }
 
+  async function loadImageAsDataUrl(src) {
+    const response = await fetch(src);
+    if (!response.ok) throw new Error(`Unable to load sticker: ${src}`);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function imageToDataUrl(img) {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  }
+
+  function getRenderedSticker(src) {
+    const absoluteSrc = new URL(src, window.location.href).href;
+    return Array.from(document.images).find(img =>
+      img.complete && img.naturalWidth > 0 && (img.currentSrc === absoluteSrc || img.src === absoluteSrc)
+    ) || null;
+  }
+
   function repositionScreenshotLabels(clonedDocument) {
     const svg = clonedDocument.getElementById('localGridSvg');
     if (!svg) return;
