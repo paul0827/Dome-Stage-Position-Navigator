@@ -771,9 +771,68 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Stats Dashboard */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 22px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .stat-icon.teal   { background: rgba(13,148,136,0.15); color: var(--color-teal); }
+    .stat-icon.indigo { background: rgba(99,102,241,0.15); color: var(--color-indigo); }
+    .stat-icon.amber  { background: rgba(245,158,11,0.15); color: var(--color-amber); }
+    .stat-icon.rose   { background: rgba(244,63,94,0.15); color: var(--color-rose); }
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 20px;
+      min-width: 280px; max-width: 420px;
+      display: flex; align-items: flex-start; gap: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      font-size: 14px; line-height: 1.5;
+    }
+    .toast-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+    .toast.success { border-left: 3px solid var(--color-emerald); }
+    .toast.success .toast-icon { color: var(--color-emerald); }
+    .toast.error   { border-left: 3px solid var(--color-rose); }
+    .toast.error   .toast-icon { color: var(--color-rose); }
+    .toast.info    { border-left: 3px solid var(--color-indigo); }
+    .toast.info    .toast-icon { color: var(--color-indigo); }
   </style>
 </head>
 <body>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <!-- Auth Panel -->
   <div id="authPanel" class="auth-overlay">
@@ -814,6 +873,7 @@
 
     <div class="sidebar-footer">
       <a href="/index.html" class="btn-secondary-link" target="_blank"><i class="fa-solid fa-house"></i> 回到查詢首頁</a>
+      <button class="btn-secondary-link" onclick="exportAllCSV();"><i class="fa-solid fa-file-export"></i> 匯出全量 CSV</button>
       <button class="btn-secondary-link" onclick="handleLogout();"><i class="fa-solid fa-right-from-bracket"></i> 登出系統</button>
     </div>
   </aside>
@@ -828,6 +888,26 @@
     </header>
 
     <div class="content-area">
+      <!-- STATS DASHBOARD -->
+      <div id="statsDashboard" class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon teal"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-info"><div id="statTotalPerformers" class="stat-value">0</div><div class="stat-label">表演者總數</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon indigo"><i class="fa-solid fa-id-badge"></i></div>
+          <div class="stat-info"><div id="statTotalDayList" class="stat-value">0</div><div class="stat-label">每日名單筆數</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fa-solid fa-building"></i></div>
+          <div class="stat-info"><div id="statEastCount" class="stat-value">0</div><div class="stat-label">東班人數</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rose"><i class="fa-solid fa-building"></i></div>
+          <div class="stat-info"><div id="statWestCount" class="stat-value">0</div><div class="stat-label">西班人數</div></div>
+        </div>
+      </div>
+
       <!-- ALERT MESSAGES -->
       <div id="globalSuccessAlert" class="alert alert-success">
         <i class="fa-solid fa-circle-check" style="margin-top: 2px;"></i>
@@ -1205,6 +1285,30 @@
     // Inline edit states
     let activeEditingRowKey = null; // for inline edit tracking
 
+    // ==========================================
+    // TOAST NOTIFICATIONS
+    // ==========================================
+    function showToast(type, msg) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: 'fa-circle-check', error: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} toast-icon"></i><span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; }, 3600);
+      setTimeout(() => { toast.remove(); }, 4100);
+    }
+
+    // ==========================================
+    // STATS DASHBOARD
+    // ==========================================
+    function updateStats() {
+      document.getElementById('statTotalPerformers').textContent = datastore.performers.length;
+      document.getElementById('statTotalDayList').textContent = datastore.dayperformers.length;
+      document.getElementById('statEastCount').textContent = datastore.performers.filter(p => p['班別'] === '東班').length;
+      document.getElementById('statWestCount').textContent = datastore.performers.filter(p => p['班別'] === '西班').length;
+    }
+
     // Session-Date Mapping
     const SESSION_DATES = {
       '1112': ['11/12(四)', '1/12(四)'],
@@ -1309,13 +1413,14 @@
           // Reset filters
           filterNamesTable();
           filterCoordsTable();
+          updateStats();
         } else {
-          alert('讀取資料失敗：' + (data.error || '未授權'));
+          showToast('error', '讀取資料失敗：' + (data.error || '未授權'));
           handleLogout();
         }
       })
       .catch(err => {
-        alert('載入資料出錯，請確認後端是否正常運作。');
+        showToast('error', '載入資料出錯，請確認後端是否正常運作。');
       });
     }
 
@@ -1567,11 +1672,7 @@
     // Global Alerts
     function showGlobalAlert(type, msg) {
       clearAlerts();
-      const el = type === 'success' ? document.getElementById('globalSuccessAlert') : document.getElementById('globalErrorAlert');
-      const text = type === 'success' ? document.getElementById('globalSuccessAlertText') : document.getElementById('globalErrorAlertText');
-      text.textContent = msg;
-      el.style.display = 'flex';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast(type, msg);
     }
 
     function clearAlerts() {
@@ -1857,11 +1958,11 @@
           activeEditingRowKey = null;
           loadDashboardData(pwd);
         } else {
-          alert('儲存失敗：' + (data.error || '未知錯誤'));
+          showToast('error', '儲存失敗：' + (data.error || '未知錯誤'));
         }
       })
       .catch(err => {
-        alert('網路連線失敗，無法儲存');
+        showToast('error', '網路連線失敗，無法儲存');
       });
     }
 
@@ -1896,11 +1997,11 @@
           showGlobalAlert('success', '🗑️ 資料已成功刪除！');
           loadDashboardData(pwd);
         } else {
-          alert('刪除失敗：' + (data.error || '未知錯誤'));
+          showToast('error', '刪除失敗：' + (data.error || '未知錯誤'));
         }
       })
       .catch(err => {
-        alert('網路連線失敗，無法刪除');
+        showToast('error', '網路連線失敗，無法刪除');
       });
     }
 
@@ -1981,7 +2082,7 @@
         row['姓名'] = document.getElementById('formDayName').value.trim();
 
         if (!row['身份證'] || !row['姓名']) {
-          alert('請填寫身份證與姓名！');
+          showToast('error', '請填寫身份證與姓名！');
           return;
         }
       } else {
@@ -2006,7 +2107,7 @@
         row['11飛天'] = document.getElementById('formPerfFlyingApsaras').value.trim();
 
         if (!row['身份證']) {
-          alert('請填寫身份證網格編號！');
+          showToast('error', '請填寫身份證網格編號！');
           return;
         }
       }
@@ -2028,12 +2129,46 @@
           closeAddRowModal();
           loadDashboardData(pwd);
         } else {
-          alert('新增失敗：' + (data.error || '未知錯誤'));
+          showToast('error', '新增失敗：' + (data.error || '未知錯誤'));
         }
       })
       .catch(err => {
-        alert('網路連線失敗，新增資料未成功');
+        showToast('error', '網路連線失敗，新增資料未成功');
       });
+    }
+    // ==========================================
+    // EXPORT CSV
+    // ==========================================
+    function exportAllCSV() {
+      const types = [
+        { key: 'performers',    label: 'performers' },
+        { key: 'dayperformers', label: 'dayperformers' }
+      ];
+      types.forEach(t => {
+        const rows = datastore[t.key];
+        if (!rows || rows.length === 0) { showToast('info', `${t.label} 無資料可匯出`); return; }
+        const headers = Object.keys(rows[0]);
+        const csvLines = [headers.join(',')];
+        rows.forEach(r => {
+          const line = headers.map(h => {
+            const v = String(r[h] ?? '');
+            return v.includes(',') || v.includes('"') || v.includes('\n')
+              ? '"' + v.replace(/"/g, '""') + '"'
+              : v;
+          });
+          csvLines.push(line.join(','));
+        });
+        const blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${t.label}.csv`; a.click();
+        URL.revokeObjectURL(url);
+        showToast('success', `${t.label}.csv 匯出完成（${rows.length} 筆）`);
+      });
+    }
+    function handleLogout() {
+      sessionStorage.removeItem('admin_pwd');
+      location.reload();
     }
   </script>
 </body>
