@@ -938,7 +938,7 @@
         dy_rel = coord.mockY || 0;
       }
       return { dx_rel, dy_rel, coord };
-    });
+    }).filter(p => !p.coord.isText);
 
     parsedPoints.forEach(pt => {
       maxOffset = Math.max(maxOffset, Math.abs(pt.dx_rel), Math.abs(pt.dy_rel));
@@ -1197,7 +1197,7 @@
         index: idx,
         role
       };
-    });
+    }).filter(pt => !pt.coord.isText);
 
     // 4. Draw Transition Connecting Paths
     const formationColors = {
@@ -1218,7 +1218,7 @@
       const end = pointsToDraw[i + 1];
 
       // Draw path line if end point is active or full trajectory is on
-      const isPathActive = (i + 1 === fIdx);
+      const isPathActive = (end.index === fIdx);
       if (!showFull && !isPathActive) continue;
 
       if (start.pos.x !== end.pos.x || start.pos.y !== end.pos.y) {
