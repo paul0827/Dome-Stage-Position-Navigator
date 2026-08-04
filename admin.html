@@ -834,24 +834,6 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- Auth Panel -->
-  <div id="authPanel" class="auth-overlay">
-    <div class="auth-card">
-      <div class="auth-logo"><i class="fa-solid fa-user-shield"></i></div>
-      <div class="auth-title">大巨蛋跑位演繹</div>
-      <div class="auth-subtitle">後台管理系統驗證</div>
-      
-      <form id="loginForm" onsubmit="handleLoginSubmit(event);">
-        <div class="form-group">
-          <label for="adminPwdInput">管理密碼</label>
-          <input type="password" id="adminPwdInput" class="form-control" placeholder="請輸入密碼..." required autocomplete="off">
-        </div>
-        <button type="submit" class="btn-submit">驗證並登入</button>
-      </form>
-      <div id="authErrorMsg" class="auth-error">密碼錯誤，請重新輸入！</div>
-    </div>
-  </div>
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -906,6 +888,12 @@
           <div class="stat-icon rose"><i class="fa-solid fa-building"></i></div>
           <div class="stat-info"><div id="statWestCount" class="stat-value">0</div><div class="stat-label">西班人數</div></div>
         </div>
+      </div>
+
+      <!-- LOCAL MODE INFO -->
+      <div class="alert alert-info" style="display: flex; margin-bottom: 20px;">
+        <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
+        <div>本地模式：資料直接從 data.js / daydata.js 載入。修改後請使用「匯出 CSV」下載變更。</div>
       </div>
 
       <!-- ALERT MESSAGES -->
@@ -1264,6 +1252,10 @@
   </div>
 
   <script>
+    document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');
+    document.write('<script src="daydata.js?v=' + Date.now() + '"><\/script>');
+  </script>
+  <script>
     // Global Datastore
     let datastore = {
       performers: [],
@@ -1355,73 +1347,54 @@
       syncImportDateDropdown();
       toggleImportTargetFields();
 
-      // Check session
-      checkSessionAuth();
+      // Load data from local JS files
+      loadDashboardData();
     });
 
-    // Authentication Checks
-    function checkSessionAuth() {
-      const pwd = sessionStorage.getItem('admin_pwd');
-      if (pwd) {
-        // Automatically hide overlay and load data
-        document.getElementById('authPanel').style.display = 'none';
-        loadDashboardData(pwd);
+    // Load Data from local JS variables
+    function loadDashboardData() {
+      // Transform performersData → datastore.performers (English keys → Chinese keys)
+      datastore.performers = performersData.map(p => ({
+        '班別': p.team || '',
+        '身分別': p.category || '',
+        '身份證': p.id || '',
+        '姓名': p.name || '',
+        '01圓形': p.circle || '',
+        '02行願': p.xingYuan || '',
+        '03米籮': p.miLuo || '',
+        '04靜思家風': p.jingSi || '',
+        '05-1有法船（點一盞燈）': p.lamp || '',
+        '05-2無法船（菜市場5毛錢）': p.noBoat || '',
+        '06四弘誓願': p.bigV || '',
+        '07-1大船師': p.daChuanShi || '',
+        '07-2骨捐能捨': p.boneDonation || '',
+        '08教育': p.edu || '',
+        '09-1人文': p.humanities1 || '',
+        '09-2人文': p.humanities2 || '',
+        '10-1五大洲': p.fiveContinents1 || '',
+        '10-2五大洲': p.fiveContinents2 || '',
+        '11飛天': p.flyingApsaras || ''
+      }));
+
+      // Transform DAY_PERFORMERS → datastore.dayperformers
+      datastore.dayperformers = [];
+      for (const [sessKey, performers] of Object.entries(DAY_PERFORMERS)) {
+        const sessInfo = DAY_SESSIONS.find(s => s.key === sessKey);
+        const dateLabel = sessInfo ? sessInfo.date : sessKey;
+        performers.forEach(p => {
+          datastore.dayperformers.push({
+            '班別': p.team || '',
+            '日期': dateLabel,
+            '身份證': p.id || '',
+            '姓名': p.name || ''
+          });
+        });
       }
-    }
 
-    function handleLoginSubmit(event) {
-      event.preventDefault();
-      const pwd = document.getElementById('adminPwdInput').value;
-      const errorMsg = document.getElementById('authErrorMsg');
-      errorMsg.style.display = 'none';
-
-      fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pwd })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          sessionStorage.setItem('admin_pwd', pwd);
-          document.getElementById('authPanel').style.display = 'none';
-          loadDashboardData(pwd);
-        } else {
-          errorMsg.style.display = 'block';
-          errorMsg.textContent = data.error || '密碼錯誤';
-        }
-      })
-      .catch(err => {
-        errorMsg.style.display = 'block';
-        errorMsg.textContent = '無法連接後台伺服器';
-      });
-    }
-
-    // Load Data from Backend
-    function loadDashboardData(pwd) {
-      fetch('/api/admin/get-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pwd })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          datastore.performers = data.performers || [];
-          datastore.dayperformers = data.dayperformers || [];
-          
-          // Reset filters
-          filterNamesTable();
-          filterCoordsTable();
-          updateStats();
-        } else {
-          showToast('error', '讀取資料失敗：' + (data.error || '未授權'));
-          handleLogout();
-        }
-      })
-      .catch(err => {
-        showToast('error', '載入資料出錯，請確認後端是否正常運作。');
-      });
+      filterNamesTable();
+      filterCoordsTable();
+      updateStats();
+      showToast('success', '資料載入完成（表演者 ' + datastore.performers.length + ' 筆，名單 ' + datastore.dayperformers.length + ' 筆）');
     }
 
     // Dropdown helpers
@@ -1625,48 +1598,106 @@
       document.getElementById('importValidationAlert').style.display = 'none';
     }
 
-    // Execute Import on Server
     function executeCSVImport() {
-      const pwd = sessionStorage.getItem('admin_pwd');
       const target = document.getElementById('importTargetSelect').value;
       const classVal = document.getElementById('importClassSelect').value;
-      const sessionVal = document.getElementById('importSessionSelect').value;
       const dateVal = document.getElementById('importDateSelect').value;
 
       const btn = document.getElementById('btnExecuteImport');
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner"></span> 匯入中...`;
 
-      fetch('/api/admin/import-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: pwd,
-          importType: target,
-          classVal: classVal,
-          sessionVal: sessionVal,
-          dateVal: dateVal,
-          csvText: selectedCSVContent
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-check-double"></i> 確認匯入此檔案`;
-
-        if (data.success) {
-          showGlobalAlert('success', `🎉 匯入成功！總共讀取 ${data.total_read} 筆，成功新增 ${data.added_count} 筆，更新/覆蓋 ${data.updated_count} 筆，重複忽略 ${data.ignored_count} 筆。`);
-          clearSelectedFile();
-          loadDashboardData(pwd); // reload
-        } else {
-          showGlobalAlert('error', `❌ 匯入失敗：` + (data.error || '未知錯誤'));
+      try {
+        const rows = parseCSV(selectedCSVContent.trim());
+        if (rows.length < 2) {
+          showToast('error', 'CSV 檔案內容為空');
+          return;
         }
-      })
-      .catch(err => {
+
+        const headers = rows[0].map(h => h.trim());
+        const dataRows = rows.slice(1);
+
+        const getColIndex = (aliases) => headers.findIndex(h => aliases.some(a => a.toLowerCase() === h.toLowerCase()));
+        const classIdx = getColIndex(['班別', '東西班', '組別', 'team']);
+        const dateIdx = getColIndex(['日期', 'date']);
+        const idIdx = getColIndex(['身份證', '身分證', 'id']);
+        const nameIdx = getColIndex(['姓名', 'name']);
+
+        let added = 0, updated = 0, ignored = 0;
+
+        dataRows.forEach(row => {
+          if (row.length < 2 || row.every(v => v === '')) return;
+          const rClass = row[classIdx]?.trim();
+          if (!rClass) return;
+
+          if (target === 'dayperformers') {
+            const rDate = row[dateIdx]?.trim();
+            const rId = row[idIdx]?.trim();
+            const rName = row[nameIdx]?.trim();
+            if (!rId || !rName) return;
+
+            const existing = datastore.dayperformers.findIndex(r =>
+              r['班別'] === rClass && r['日期'] === rDate && r['身份證'] === rId
+            );
+            if (existing !== -1) {
+              datastore.dayperformers[existing]['姓名'] = rName;
+              updated++;
+            } else {
+              datastore.dayperformers.push({ '班別': rClass, '日期': rDate, '身份證': rId, '姓名': rName });
+              added++;
+            }
+          } else {
+            const rId = row[idIdx]?.trim();
+            if (!rId) return;
+
+            const existing = datastore.performers.findIndex(r =>
+              r['班別'] === rClass && r['身份證'] === rId
+            );
+            if (existing !== -1) {
+              const fieldMap = {
+                '身分別': getColIndex(['身分別', 'category']),
+                '姓名': nameIdx,
+                '01圓形': getColIndex(['01圓形', 'circle']),
+                '02行願': getColIndex(['02行願', 'xingYuan']),
+                '03米籮': getColIndex(['03米籮', 'miLuo']),
+                '04靜思家風': getColIndex(['04靜思家風', '04靜思', 'jingSi']),
+                '05-1有法船（點一盞燈）': getColIndex(['05-1有法船（點一盞燈）', '05-1有法船', 'lamp']),
+                '05-2無法船（菜市場5毛錢）': getColIndex(['05-2無法船（菜市場5毛錢）', '05-2無法船', 'noBoat']),
+                '06四弘誓願': getColIndex(['06四弘誓願', 'bigV']),
+                '07-1大船師': getColIndex(['07-1大船師', 'daChuanShi']),
+                '07-2骨捐能捨': getColIndex(['07-2骨捐能捨', '07-2骨捐', 'boneDonation']),
+                '08教育': getColIndex(['08教育', 'edu']),
+                '09-1人文': getColIndex(['09-1人文', 'humanities1']),
+                '09-2人文': getColIndex(['09-2人文', 'humanities2']),
+                '10-1五大洲': getColIndex(['10-1五大洲', '10-1五大洲1', 'fiveContinents1']),
+                '10-2五大洲': getColIndex(['10-2五大洲', '10-2五大洲2', 'fiveContinents2']),
+                '11飛天': getColIndex(['11飛天', 'flyingApsaras'])
+              };
+              Object.entries(fieldMap).forEach(([field, idx]) => {
+                if (idx !== -1 && row[idx]?.trim()) {
+                  datastore.performers[existing][field] = row[idx].trim();
+                }
+              });
+              updated++;
+            } else {
+              const newPerf = { '班別': rClass, '身份證': rId, '姓名': row[nameIdx]?.trim() || '缺', '身分別': row[getColIndex(['身分別'])]?.trim() || 'A白' };
+              datastore.performers.push(newPerf);
+              added++;
+            }
+          }
+        });
+
+        showToast('success', `匯入完成！新增 ${added} 筆，更新 ${updated} 筆`);
+        clearSelectedFile();
+        filterNamesTable();
+        filterCoordsTable();
+        updateStats();
+      } catch (err) {
+        showToast('error', '匯入失敗：' + err.message);
+      } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-check-double"></i> 確認匯入此檔案`;
-        showGlobalAlert('error', `❌ 無法連線至伺服器，匯入失敗。`);
-      });
+      }
     }
 
     // Global Alerts
@@ -1915,12 +1946,15 @@
     }
 
     function saveInlineEdit(type, uniqueKey, oldKey) {
-      const pwd = sessionStorage.getItem('admin_pwd');
       let row = { ...oldKey };
 
       if (type === 'dayperformers') {
         row['姓名'] = document.getElementById(`editName_${uniqueKey}`).value.trim();
-      } else { // performers
+        const idx = datastore.dayperformers.findIndex(r =>
+          r['班別'] === oldKey['班別'] && r['日期'] === oldKey['日期'] && r['身份證'] === oldKey['身份證']
+        );
+        if (idx !== -1) datastore.dayperformers[idx]['姓名'] = row['姓名'];
+      } else {
         row['身分別'] = document.getElementById(`editCat_${uniqueKey}`).value.trim();
         row['姓名'] = document.getElementById(`editName2_${uniqueKey}`).value.trim();
         row['01圓形'] = document.getElementById(`editCircle_${uniqueKey}`).value.trim();
@@ -1938,32 +1972,17 @@
         row['10-1五大洲'] = document.getElementById(`editFiveContinents1_${uniqueKey}`).value.trim();
         row['10-2五大洲'] = document.getElementById(`editFiveContinents2_${uniqueKey}`).value.trim();
         row['11飛天'] = document.getElementById(`editFlyingApsaras_${uniqueKey}`).value.trim();
+        const idx = datastore.performers.findIndex(r =>
+          r['班別'] === oldKey['班別'] && r['身份證'] === oldKey['身份證']
+        );
+        if (idx !== -1) Object.assign(datastore.performers[idx], row);
       }
 
-      fetch('/api/admin/save-row', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: pwd,
-          type: type,
-          action: 'update',
-          row: row,
-          oldKey: oldKey
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showGlobalAlert('success', '✅ 儲存修改成功！');
-          activeEditingRowKey = null;
-          loadDashboardData(pwd);
-        } else {
-          showToast('error', '儲存失敗：' + (data.error || '未知錯誤'));
-        }
-      })
-      .catch(err => {
-        showToast('error', '網路連線失敗，無法儲存');
-      });
+      showGlobalAlert('success', '✅ 儲存修改成功！');
+      activeEditingRowKey = null;
+      filterNamesTable();
+      filterCoordsTable();
+      updateStats();
     }
 
     // ==========================================
@@ -1976,33 +1995,21 @@
       } else {
         confirmMsg = `確定要刪除「班別：${key['班別']}，身份證：${key['身份證']}」的表演者與其所有座標資料嗎？`;
       }
-
       if (!confirm(confirmMsg)) return;
 
-      const pwd = sessionStorage.getItem('admin_pwd');
-
-      fetch('/api/admin/save-row', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: pwd,
-          type: type,
-          action: 'delete',
-          oldKey: key
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showGlobalAlert('success', '🗑️ 資料已成功刪除！');
-          loadDashboardData(pwd);
-        } else {
-          showToast('error', '刪除失敗：' + (data.error || '未知錯誤'));
-        }
-      })
-      .catch(err => {
-        showToast('error', '網路連線失敗，無法刪除');
-      });
+      if (type === 'dayperformers') {
+        datastore.dayperformers = datastore.dayperformers.filter(r =>
+          !(r['班別'] === key['班別'] && r['日期'] === key['日期'] && r['身份證'] === key['身份證'])
+        );
+      } else {
+        datastore.performers = datastore.performers.filter(r =>
+          !(r['班別'] === key['班別'] && r['身份證'] === key['身份證'])
+        );
+      }
+      showGlobalAlert('success', '🗑️ 資料已成功刪除！');
+      filterNamesTable();
+      filterCoordsTable();
+      updateStats();
     }
 
     // Sync formPerfId to formPerfMiLuo
@@ -2072,7 +2079,6 @@
     }
 
     function submitAddRow() {
-      const pwd = sessionStorage.getItem('admin_pwd');
       let row = {};
 
       if (currentAddType === 'dayperformers') {
@@ -2080,11 +2086,11 @@
         row['日期'] = document.getElementById('formDayDate').value;
         row['身份證'] = document.getElementById('formDayId').value.trim();
         row['姓名'] = document.getElementById('formDayName').value.trim();
-
         if (!row['身份證'] || !row['姓名']) {
           showToast('error', '請填寫身份證與姓名！');
           return;
         }
+        datastore.dayperformers.push(row);
       } else {
         row['班別'] = document.getElementById('formPerfClass').value;
         row['身分別'] = document.getElementById('formPerfCat').value.trim();
@@ -2100,41 +2106,23 @@
         row['07-1大船師'] = document.getElementById('formPerfDaChuan').value.trim();
         row['07-2骨捐能捨'] = document.getElementById('formPerfBoneDonation').value.trim();
         row['08教育'] = document.getElementById('formPerfEdu').value.trim();
-        row['09-1人文'] = row['身份證']; // 強制等於身份證
+        row['09-1人文'] = row['身份證'];
         row['09-2人文'] = document.getElementById('formPerfHumanities2').value.trim();
         row['10-1五大洲'] = document.getElementById('formPerfFiveContinents1').value.trim();
         row['10-2五大洲'] = document.getElementById('formPerfFiveContinents2').value.trim();
         row['11飛天'] = document.getElementById('formPerfFlyingApsaras').value.trim();
-
         if (!row['身份證']) {
           showToast('error', '請填寫身份證網格編號！');
           return;
         }
+        datastore.performers.push(row);
       }
 
-      fetch('/api/admin/save-row', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: pwd,
-          type: currentAddType,
-          action: 'add',
-          row: row
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showGlobalAlert('success', '✅ 成功新增單筆資料！');
-          closeAddRowModal();
-          loadDashboardData(pwd);
-        } else {
-          showToast('error', '新增失敗：' + (data.error || '未知錯誤'));
-        }
-      })
-      .catch(err => {
-        showToast('error', '網路連線失敗，新增資料未成功');
-      });
+      showToast('success', '✅ 成功新增單筆資料！');
+      closeAddRowModal();
+      filterNamesTable();
+      filterCoordsTable();
+      updateStats();
     }
     // ==========================================
     // EXPORT CSV
@@ -2167,8 +2155,7 @@
       });
     }
     function handleLogout() {
-      sessionStorage.removeItem('admin_pwd');
-      location.reload();
+      showToast('info', '此為本地模式，無需登出');
     }
   </script>
 </body>
