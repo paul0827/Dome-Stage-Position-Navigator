@@ -750,7 +750,6 @@
       `;
 
       itemRow.innerHTML = `
-        <div class="col-num">${idx + 1}</div>
         <div class="col-name" style="display: flex; flex-direction: column; align-items: flex-start;">
           <span>${f.name}</span>
           <div style="display: flex; flex-wrap: wrap; align-items: center;">
@@ -1184,19 +1183,19 @@
         const roundedX = Math.round((homeCoord.x + i) * 10) / 10;
         const roundedY = Math.round(homeCoord.y - i);
 
-        // X coordinate labels (along bottom)
+        // X coordinate labels (aligned to horizontal center line)
         const textX = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         textX.setAttribute('x', GRID_CENTER_X + i * GRID_SPACING);
-        textX.setAttribute('y', GRID_CENTER_Y + MAX_GRID_COORD * GRID_SPACING - 4);
+        textX.setAttribute('y', GRID_CENTER_Y + 11);
         textX.setAttribute('text-anchor', 'middle');
         textX.textContent = Math.abs(roundedX);
         linesGroup.appendChild(textX);
 
-        // Y coordinate labels (along left)
+        // Y coordinate labels (aligned to vertical center line)
         const textY = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textY.setAttribute('x', GRID_CENTER_X - MAX_GRID_COORD * GRID_SPACING + 4);
-        textY.setAttribute('y', GRID_CENTER_Y + i * GRID_SPACING + 2);
-        textY.setAttribute('text-anchor', 'start');
+        textY.setAttribute('x', GRID_CENTER_X - 10);
+        textY.setAttribute('y', GRID_CENTER_Y + i * GRID_SPACING + 3);
+        textY.setAttribute('text-anchor', 'end');
         textY.textContent = roundedY;
         linesGroup.appendChild(textY);
       }
@@ -1357,7 +1356,6 @@
     const shouldCreateCoordinateLabel = (pt) =>
       pt.coord && pt.coord.text;
     const getCoordinateDisplayText = (text) => text === '無' ? '無座標' : text;
-    const getFormationNumber = (pt) => String(pt.index + 1).padStart(2, '0');
     const estimateSvgTextWidth = (text, fontSize) => (
       Array.from(text).reduce((sum, char) => sum + (/[\u4e00-\u9fff]/.test(char) ? fontSize : fontSize * 0.62), 0) + 10
     );
@@ -1514,20 +1512,10 @@
         labelG.setAttribute('data-anchor-y', pt.pos.y);
         labelG.setAttribute('data-label-key', getCoordinateLabelKey(pt));
         
-        const memberNumbers = coordinateLabelGroup.members
-          .slice()
-          .sort((a, b) => a.index - b.index)
-          .map(getFormationNumber);
         const coordinateText = getCoordinateDisplayText(pt.coord.text);
         const fontSize = 9;
-        const memberText = coordinateLabelGroup.members.length > 1 || pt.coord.text === '無'
-          ? memberNumbers.join(',')
-          : '';
-        const bgWidth = Math.max(
-          estimateSvgTextWidth(coordinateText, fontSize),
-          memberText ? estimateSvgTextWidth(memberText, 7.5) : 0
-        );
-        const bgHeight = memberText ? 24 : fontSize * 1.5;
+        const bgWidth = estimateSvgTextWidth(coordinateText, fontSize);
+        const bgHeight = fontSize * 1.5;
         const labelBounds = findNonOverlappingLabelBounds(pt, bgWidth, bgHeight);
         const labelX = labelBounds.left + bgWidth / 2;
         const labelY = labelBounds.top + bgHeight / 2;
@@ -1557,23 +1545,12 @@
 
         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         textEl.setAttribute('x', labelX);
-        textEl.setAttribute('y', memberText ? labelBounds.top + 10 : labelY + fontSize * 0.35);
+        textEl.setAttribute('y', labelY + fontSize * 0.35);
         textEl.setAttribute('text-anchor', 'middle');
         textEl.setAttribute('class', 'path-label-text');
         textEl.setAttribute('style', `font-size: ${fontSize}px; font-weight: bold;`);
         textEl.textContent = coordinateText;
         labelG.appendChild(textEl);
-
-        if (memberText) {
-          const subTextEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          subTextEl.setAttribute('x', labelX);
-          subTextEl.setAttribute('y', labelBounds.top + 20);
-          subTextEl.setAttribute('text-anchor', 'middle');
-          subTextEl.setAttribute('class', 'path-label-subtext');
-          subTextEl.setAttribute('style', 'font-size: 7.5px; font-weight: 700;');
-          subTextEl.textContent = memberText;
-          labelG.appendChild(subTextEl);
-        }
 
         labelsToAppend.push({ element: labelG, isCurrent: pt.role === 'current' });
       }
@@ -2079,8 +2056,6 @@
               svgImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
             }
           });
-
-          repositionScreenshotLabels(clonedDocument);
         }
       });
 

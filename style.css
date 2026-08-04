@@ -841,7 +841,7 @@ body {
 
 .formations-col-box .table-row {
   display: grid;
-  grid-template-columns: 32px 1fr 46px 72px;
+  grid-template-columns: 1fr 46px 72px;
   align-items: center;
   padding: 7px 8px;
   font-size: 12.5px;
@@ -935,16 +935,6 @@ body {
 }
 
 /* Columns positioning */
-.col-num {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.table-row.formation-item.active .col-num {
-  color: var(--gold-color);
-}
-
 .col-name {
   font-weight: 600;
   white-space: nowrap;
