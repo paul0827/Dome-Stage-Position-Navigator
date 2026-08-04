@@ -937,9 +937,8 @@ body {
 /* Columns positioning */
 .col-name {
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .table-row.formation-item.active .col-name {

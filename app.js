@@ -7,21 +7,21 @@
 
   // Complete 17-point formation sequence, aligned with the reference website.
   const keyFormations = [
-    { key: 'basic', name: '起點 (基本隊形)', label: '起點' },
-    { key: 'circle', name: '01圓形', label: '01圓形' },
-    { key: 'xingYuan', name: '02行願', label: '02行願' },
-    { key: 'miLuo', name: '03米籮', label: '03米籮' },
-    { key: 'jingSi', name: '04靜思家風', label: '04靜思' },
+    { key: 'basic', name: '起點 (<span style="color:#ef4444">基本隊形</span>)', label: '起點' },
+    { key: 'circle', name: '01圓形（序、生、老、病、死、六度）', label: '01圓形' },
+    { key: 'xingYuan', name: '02行願（千手/開經偈）', label: '02行願' },
+    { key: 'miLuo', name: '03米籮（<span style="color:#ef4444">基本隊形</span>）', label: '03米籮' },
+    { key: 'jingSi', name: '04靜思家風（<span style="color:#ef4444">基本隊形</span>）', label: '04靜思' },
     { key: 'lamp', name: '05-1有法船（點一盞燈）', label: '05-1有法船' },
     { key: 'noBoat', name: '05-2無法船（菜市場5毛錢）', label: '05-2無法船' },
     { key: 'noBoat3', name: '05-3無法船（是諸眾生）', label: '05-3無法船' },
-    { key: 'bigV', name: '06四弘誓願', label: '06四弘誓願' },
-    { key: 'daChuanShi', name: '07-1大船師', label: '07-1大船師' },
-    { key: 'boneDonation', name: '07-2骨捐能捨', label: '07-2骨捐' },
-    { key: 'edu', name: '08教育', label: '08教育' },
-    { key: 'humanities1', name: '09-1人文（基本隊形）', label: '09-1人文' },
-    { key: 'humanities2', name: '09-2人文（主機板）', label: '09-2人文' },
-    { key: 'fiveContinents1', name: '10-1五大洲', label: '10-1五大洲' },
+    { key: 'bigV', name: '06四弘誓願（地藏經、醫療梵唄）', label: '06四弘誓願' },
+    { key: 'daChuanShi', name: '07-1大船師（大醫王）', label: '07-1大船師' },
+    { key: 'boneDonation', name: '07-2骨捐能捨（能捨）', label: '07-2骨捐' },
+    { key: 'edu', name: '08教育（說法品梵唄、無語良師、大體老師、小樹阿、畢業典禮、藥草喻）', label: '08教育' },
+    { key: 'humanities1', name: '09-1人文（<span style="color:#ef4444">基本隊形</span>、慈誠、難報經）', label: '09-1人文' },
+    { key: 'humanities2', name: '09-2人文（主機板、大愛讓世界亮起來、天空破了洞、環保志工、代謝不住）', label: '09-2人文' },
+    { key: 'fiveContinents1', name: '10-1五大洲（開經書）', label: '10-1五大洲' },
     { key: 'fiveContinents2', name: '10-2五大洲', label: '10-2五大洲' },
     { key: 'flyingApsaras', name: '11飛天', label: '11飛天' }
   ];
@@ -1156,9 +1156,9 @@
 
     // 2. Draw Grid Lines and Coordinates labels
     const drawGuides = showAlignmentGuides.checked;
-    for (let i = -MAX_GRID_COORD; i <= MAX_GRID_COORD; i = Math.round((i + 0.6) * 10) / 10) {
-      const isCenter = (Math.abs(i) < 0.01);
-      const isLabel = (Math.abs(i - Math.round(i)) < 0.01);
+    for (let i = -MAX_GRID_COORD; i <= MAX_GRID_COORD; i += labelStep) {
+      const isCenter = (i === 0);
+      const isLabel = true;
 
       // Vertical line
       const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -1178,8 +1178,8 @@
       hLine.setAttribute('class', isCenter && drawGuides ? 'axis-line' : '');
       linesGroup.appendChild(hLine);
 
-      // Text labels for coordinates (only at integer positions)
-      if (isLabel && !isCenter && !homeCoord.isText) {
+      // Text labels for coordinates
+      if (!isCenter && !homeCoord.isText) {
         const roundedX = Math.round((homeCoord.x + i) * 10) / 10;
         const roundedY = Math.round(homeCoord.y - i);
 
@@ -1354,8 +1354,8 @@
 
     const getCoordinateLabelKey = (pt) => (pt.coord.text || '無').trim() || '無';
     const shouldCreateCoordinateLabel = (pt) =>
-      pt.coord && pt.coord.text;
-    const getCoordinateDisplayText = (text) => text === '無' ? '無座標' : text;
+      pt.coord && pt.coord.text && pt.coord.text !== '無';
+    const getCoordinateDisplayText = (text) => text;
     const estimateSvgTextWidth = (text, fontSize) => (
       Array.from(text).reduce((sum, char) => sum + (/[\u4e00-\u9fff]/.test(char) ? fontSize : fontSize * 0.62), 0) + 10
     );

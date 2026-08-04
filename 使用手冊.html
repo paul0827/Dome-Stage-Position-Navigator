@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用手冊 - 大巨蛋演繹個人定位系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      line-height: 1.8;
+    }
+    .manual-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .manual-header {
+      text-align: center; margin-bottom: 48px; padding: 40px 24px;
+      background: linear-gradient(135deg, rgba(20,184,166,0.15), rgba(59,130,246,0.15));
+      border: 1px solid rgba(20,184,166,0.3); border-radius: 16px;
+    }
+    .manual-header h1 { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+    .manual-header p { font-size: 14px; color: #94a3b8; }
+    .manual-section {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 12px; padding: 32px; margin-bottom: 24px;
+    }
+    .manual-section h2 {
+      font-size: 20px; font-weight: 700; color: #14b8a6; margin-bottom: 20px;
+      padding-bottom: 12px; border-bottom: 2px solid rgba(20,184,166,0.3);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-num {
+      background: linear-gradient(135deg, #14b8a6, #0891b2);
+      color: #fff; width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .manual-section h3 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin: 20px 0 12px; }
+    .manual-section p { color: #cbd5e1; margin-bottom: 12px; font-size: 15px; }
+    .manual-section ul, .manual-section ol { margin: 12px 0; padding-left: 24px; }
+    .manual-section li { color: #cbd5e1; margin-bottom: 8px; font-size: 15px; }
+    .manual-section li strong { color: #f1f5f9; }
+    .step-list { list-style: none; padding-left: 0; counter-reset: step; }
+    .step-list li {
+      counter-increment: step; position: relative; padding-left: 48px; margin-bottom: 24px;
+    }
+    .step-list li::before {
+      content: counter(step); position: absolute; left: 0; top: 0;
+      width: 32px; height: 32px; background: linear-gradient(135deg, #14b8a6, #0891b2);
+      color: #fff; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; font-weight: 700;
+    }
+    .step-list li strong { color: #f1f5f9; display: block; margin-bottom: 4px; font-size: 16px; }
+    .step-list li span { color: #94a3b8; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th, td {
+      padding: 12px 16px; text-align: left;
+      border-bottom: 1px solid rgba(148,163,184,0.15); font-size: 14px;
+    }
+    th { background: rgba(20,184,166,0.15); color: #14b8a6; font-weight: 600; }
+    td { color: #cbd5e1; }
+    td:first-child { color: #f1f5f9; font-weight: 500; }
+    .faq-item {
+      margin-bottom: 20px; padding: 16px;
+      background: rgba(30,41,59,0.5); border-radius: 8px;
+    }
+    .faq-item .q { color: #fbbf24; font-weight: 700; margin-bottom: 8px; font-size: 15px; }
+    .faq-item .a { color: #94a3b8; font-size: 14px; padding-left: 16px; }
+    .color-dot {
+      display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+      margin-right: 8px; vertical-align: middle;
+    }
+    .color-dot.red { background: #ef4444; }
+    .color-dot.green { background: #22c55e; }
+    .footer { text-align: center; margin-top: 40px; padding: 24px; color: #64748b; font-size: 13px; }
+    @media (max-width: 640px) {
+      .manual-container { padding: 20px 16px; }
+      .manual-header h1 { font-size: 22px; }
+      .manual-section { padding: 20px; }
+      .manual-section h2 { font-size: 17px; }
+      th, td { padding: 10px 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="manual-container">
+    <div class="manual-header">
+      <h1><i class="fa-solid fa-book-open" style="margin-right:8px;"></i>使用手冊</h1>
+      <p>大巨蛋演繹個人定位系統 - Dome Stage Position Navigator</p>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">1</span> 系統簡介</h2>
+      <p>本系統協助演繹人員快速找到自己在舞台上的每個站位座標，包含 <strong>17 個關鍵隊形</strong>的定位資訊，幫助你在排練與正式演出時精準站位。</p>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">2</span> 登入系統</h2>
+      <ol class="step-list">
+        <li>
+          <strong>選擇日期場次</strong>
+          <span>在首頁上方點選「選擇日期場次」區域，選取你的演出日期。</span>
+        </li>
+        <li>
+          <strong>選擇班別</strong>
+          <span>點選「東班」或「西班」按鈕，選取你所屬的班別。</span>
+        </li>
+        <li>
+          <strong>輸入身分證座標</strong>
+          <span>在搜尋欄輸入你的座標編號（例如：4-46），系統會自動帶出建議。選取後點「進入系統」。</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">3</span> 主要畫面說明</h2>
+      <h3><i class="fa-solid fa-map" style="color:#14b8a6;margin-right:6px;"></i> 左側：個人定位與跑位軌跡地圖</h3>
+      <ul>
+        <li>顯示你的起點位置及所有隊形的移動路線</li>
+        <li>可使用地圖控制按鈕進行縮放、旋轉、重設視圖</li>
+        <li>勾選「顯示所有軌跡」可查看完整移動路徑</li>
+      </ul>
+      <h3><i class="fa-solid fa-list-ol" style="color:#a78bfa;margin-right:6px;"></i> 右側：17 個跑位定點對照表</h3>
+      <p>分為兩個部分：</p>
+      <ul>
+        <li><strong>第一部分</strong>（起點～06四弘誓願）</li>
+        <li><strong>第二部分</strong>（07-1大船師～11飛天）</li>
+      </ul>
+      <p>點選任一隊形，地圖會自動高亮該位置。</p>
+      <h3><i class="fa-solid fa-circle-info" style="color:#3b82f6;margin-right:6px;"></i> 底部：演繹資訊區</h3>
+      <ul>
+        <li>顯示目前隊形編號、名稱、座標</li>
+        <li>提供「上一景」「下一景」按鈕切換隊形</li>
+        <li>顯示走位指引（從前一景移動到目前位置的方向與距離）</li>
+        <li>顯示該隊形的唱誦段落與動作說明</li>
+      </ul>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">4</span> 功能按鈕說明</h2>
+      <table>
+        <thead>
+          <tr><th>按鈕</th><th>功能</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><i class="fa-solid fa-magnifying-glass" style="color:#14b8a6;margin-right:6px;"></i>重新查詢</td><td>返回搜尋畫面，查詢其他表演者</td></tr>
+          <tr><td><i class="fa-solid fa-download" style="color:#fbbf24;margin-right:6px;"></i>下載定位表</td><td>匯出個人 PDF 跑位定位表</td></tr>
+          <tr><td><i class="fa-solid fa-camera" style="color:#3b82f6;margin-right:6px;"></i>網頁截圖</td><td>將地圖與對照表截圖為 PNG 圖片</td></tr>
+          <tr><td><i class="fa-solid fa-book-open" style="color:#a78bfa;margin-right:6px;"></i>使用手冊</td><td>開啟本使用手冊</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">5</span> 地圖操作</h2>
+      <table>
+        <thead>
+          <tr><th>操作</th><th>方式</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>放大</td><td>點「+」按鈕 或 雙指向外展開</td></tr>
+          <tr><td>縮小</td><td>點「-」按鈕 或 雙指向內收攏</td></tr>
+          <tr><td>移動視圖</td><td>單指拖移地圖</td></tr>
+          <tr><td>旋轉</td><td>點「逆時針」或「順時針」按鈕（每次 45°）</td></tr>
+          <tr><td>重設視圖</td><td>點「重設對焦」按鈕回到預設位置</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">6</span> 隊形標示說明</h2>
+      <ul>
+        <li><strong>紅色圓形地標</strong>：起點位置（顯示你的座標數字）</li>
+        <li><strong>各色圓點</strong>：各隊形的站位座標</li>
+        <li><strong>箭頭路線</strong>：從前一景到目前位置的移動方向</li>
+        <li><strong>座標標籤</strong>：顯示該位置的網格座標</li>
+      </ul>
+      <h3>地標貼紙顏色</h3>
+      <ul>
+        <li><span class="color-dot red"></span><strong>紅色</strong>：A 類表演者</li>
+        <li><span class="color-dot green"></span><strong>綠色</strong>：B 類表演者</li>
+      </ul>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">7</span> 走位指引說明</h2>
+      <p>系統會自動計算並顯示：</p>
+      <ul>
+        <li>移動方向（左移/右移/上移/下移）</li>
+        <li>移動距離（單位：格）</li>
+        <li>若與前一景座標相同，則顯示「原地不動」</li>
+      </ul>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">8</span> 下載 PDF 定位表</h2>
+      <p>點選「下載定位表」按鈕，系統會生成包含以下資訊的 PDF：</p>
+      <ul>
+        <li>個人基本資料（姓名、類別、座標、班別）</li>
+        <li>17 個隊形的地標貼紙與網格座標</li>
+        <li>走位路線圖</li>
+      </ul>
+    </div>
+
+    <div class="manual-section">
+      <h2><span class="section-num">9</span> 常見問題</h2>
+      <div class="faq-item">
+        <div class="q"><i class="fa-solid fa-circle-question" style="margin-right:6px;"></i>搜尋不到我的座標？</div>
+        <div class="a">請確認已正確選擇日期場次與班別，並輸入正確的座標格式（數字-數字）。</div>
+      </div>
+      <div class="faq-item">
+        <div class="q"><i class="fa-solid fa-circle-question" style="margin-right:6px;"></i>地圖上的數字看不懂？</div>
+        <div class="a">數字格式為「X-Y」，X 為橫向座標，Y 為縱向座標，對照舞台上的網格線即可找到位置。</div>
+      </div>
+      <div class="faq-item">
+        <div class="q"><i class="fa-solid fa-circle-question" style="margin-right:6px;"></i>如何查看其他隊形的位置？</div>
+        <div class="a">點選右側對照表中的任一隊形，或使用底部的「上一景」「下一景」按鈕切換。</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>系統版本：v2.4.0 | 大巨蛋演繹個人定位系統</p>
+    </div>
+  </div>
+</body>
+</html>
