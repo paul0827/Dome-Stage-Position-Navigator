@@ -82,10 +82,7 @@
   const closeAdminModalBtn = document.getElementById('closeAdminModalBtn');
   const verifyAdminPasswordBtn = document.getElementById('verifyAdminPasswordBtn');
   const adminPasswordInput = document.getElementById('adminPassword');
-  const adminAuthScreen = document.getElementById('adminAuthScreen');
-  const adminMainContent = document.getElementById('adminMainContent');
   const adminMessage = document.getElementById('adminMessage');
-  const adminFinishBtn = document.getElementById('adminFinishBtn');
 
   // State Variables
   let currentPerformer = null;
@@ -2055,191 +2052,19 @@
   function handleAdminLogin() {
     const password = adminPasswordInput.value;
     adminMessage.style.display = 'none';
-    
-    fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        sessionStorage.setItem('admin_pwd', password);
-        adminAuthScreen.style.display = 'none';
-        adminMainContent.style.display = 'block';
-        setupAdminDashboardHandlers(password);
-      } else {
-        showAdminMsg('密碼錯誤！請重新輸入。', 'error');
-      }
-    })
-    .catch(err => {
-      showAdminMsg('連線到後台伺服器失敗，請確認伺服器正在運行。', 'error');
-    });
+
+    if (password === 'admin') {
+      sessionStorage.setItem('admin_pwd', password);
+      window.location.href = 'admin.html';
+    } else {
+      showAdminMsg('密碼錯誤！請重新輸入。', 'error');
+    }
   }
 
   function showAdminMsg(text, type) {
     adminMessage.textContent = text;
     adminMessage.className = `admin-msg-box ${type}`;
     adminMessage.style.display = 'block';
-  }
-
-  // Initialize admin action forms
-  function setupAdminDashboardHandlers(password) {
-    const adminTabsBtns = document.querySelectorAll('.admin-tab-btn');
-    const adminTabPanels = document.querySelectorAll('.admin-tab-panel');
-
-    adminTabsBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        adminTabsBtns.forEach(b => b.classList.remove('active'));
-        adminTabPanels.forEach(p => p.style.display = 'none');
-        
-        btn.classList.add('active');
-        const activePanel = document.getElementById(`adminPanel-${btn.dataset.adminTab}`);
-        if (activePanel) activePanel.style.display = 'block';
-      });
-    });
-
-    // Query elements
-    const queryDayPerformerBtn = document.getElementById('queryDayPerformerBtn');
-    const queryPerformerBtn = document.getElementById('queryPerformerBtn');
-
-    queryDayPerformerBtn.addEventListener('click', () => {
-      const sess = document.getElementById('adminDaySession').value;
-      const team = document.getElementById('adminDayTeam').value;
-      const id = document.getElementById('adminDayId').value.trim();
-      
-      if (!id) return alert('請輸入身分證編號');
-      
-      // Load current names
-      fetch('/api/admin/get-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const list = data.dayperformers || [];
-          const match = list.find(p => p.id === id && p.team === team && p.date === sess);
-          const oldNameInput = document.getElementById('adminDayOldName');
-          if (match) {
-            oldNameInput.value = match.name;
-            document.getElementById('adminDayName').value = match.name;
-          } else {
-            oldNameInput.value = '尚未登記';
-            document.getElementById('adminDayName').value = '';
-          }
-        }
-      });
-    });
-
-    queryPerformerBtn.addEventListener('click', () => {
-      const id = document.getElementById('adminId').value.trim();
-      const team = document.getElementById('adminTeam').value;
-      if (!id) return alert('請輸入身分證編號');
-
-      fetch('/api/admin/get-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const list = data.performers || [];
-          const match = list.find(p => p.id === id && p.team === team);
-          if (match) {
-            // Fill coordinate inputs
-            document.getElementById('adminCircle').value = match.circle || '';
-            document.getElementById('adminXingYuan').value = match.xingYuan || '';
-            document.getElementById('adminMiLuo').value = match.miLuo || id;
-            document.getElementById('adminJingSi').value = match.jingSi || '';
-            document.getElementById('adminLamp').value = match.lamp || '';
-            document.getElementById('adminNoBoat').value = match.noBoat || '';
-            document.getElementById('adminBigV').value = match.bigV || '';
-            document.getElementById('adminDaChuanShi').value = match.daChuanShi || '';
-            document.getElementById('adminBoneDonation').value = match.boneDonation || '';
-            document.getElementById('adminEdu').value = match.edu || '';
-            document.getElementById('adminHumanities2').value = match.humanities2 || '';
-            document.getElementById('adminFiveContinents1').value = match.fiveContinents1 || '';
-            document.getElementById('adminFiveContinents2').value = match.fiveContinents2 || '';
-            document.getElementById('adminFlyingApsaras').value = match.flyingApsaras || '';
-            showAdminMsg('已成功載入該表演者現有座標！', 'success');
-          } else {
-            showAdminMsg('查無此表演者，儲存時將建立新資料。', 'error');
-          }
-        }
-      });
-    });
-
-    // Form submit handlers
-    const dayperformerForm = document.getElementById('dayperformerForm');
-    dayperformerForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const session = document.getElementById('adminDaySession').value;
-      const team = document.getElementById('adminDayTeam').value;
-      const id = document.getElementById('adminDayId').value.trim();
-      const name = document.getElementById('adminDayName').value.trim();
-
-      fetch('/api/update-dayperformer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session, id, name, team, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showAdminMsg('姓名修改成功！可關閉視窗並重新整理套用變更。', 'success');
-          adminFinishBtn.style.display = 'block';
-        } else {
-          showAdminMsg('儲存失敗：' + (data.error || '未知錯誤'), 'error');
-        }
-      });
-    });
-
-    const performerForm = document.getElementById('performerForm');
-    performerForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const id = document.getElementById('adminId').value.trim();
-      const team = document.getElementById('adminTeam').value;
-      const circle = document.getElementById('adminCircle').value.trim();
-      const xingYuan = document.getElementById('adminXingYuan').value.trim();
-      const miLuo = document.getElementById('adminMiLuo').value.trim();
-      const jingSi = document.getElementById('adminJingSi').value.trim();
-      const lamp = document.getElementById('adminLamp').value.trim();
-      const noBoat = document.getElementById('adminNoBoat').value.trim();
-      const bigV = document.getElementById('adminBigV').value.trim();
-      const daChuanShi = document.getElementById('adminDaChuanShi').value.trim();
-      const boneDonation = document.getElementById('adminBoneDonation').value.trim();
-      const edu = document.getElementById('adminEdu').value.trim();
-      const humanities2 = document.getElementById('adminHumanities2').value.trim();
-      const fiveContinents1 = document.getElementById('adminFiveContinents1').value.trim();
-      const fiveContinents2 = document.getElementById('adminFiveContinents2').value.trim();
-      const flyingApsaras = document.getElementById('adminFlyingApsaras').value.trim();
-
-      fetch('/api/update-performer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id, circle, xingYuan, miLuo, jingSi, lamp, noBoat, bigV, daChuanShi,
-          boneDonation, edu, humanities2, fiveContinents1, fiveContinents2,
-          flyingApsaras, team, password
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showAdminMsg('座標修改成功！可關閉視窗並重新整理套用變更。', 'success');
-          adminFinishBtn.style.display = 'block';
-        } else {
-          showAdminMsg('儲存失敗：' + (data.error || '未知錯誤'), 'error');
-        }
-      });
-    });
-
-    adminFinishBtn.addEventListener('click', () => {
-      window.location.reload();
-    });
   }
 
 })();
