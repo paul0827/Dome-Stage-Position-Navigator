@@ -363,6 +363,10 @@
     // Admin dialog listeners
     adminBtn.addEventListener('click', () => {
       adminModal.style.display = 'flex';
+      adminPasswordInput.value = '';
+      if (isLoginLocked()) {
+        showAdminMsg(`系統已暫時鎖定登入。請 ${formatLoginLockRemaining()} 後再試。`, 'error');
+      }
       adminPasswordInput.focus();
     });
 
@@ -2077,15 +2081,98 @@
   // Admin Backend API Handlers
   // ==========================================================================
 
+  // Security helpers for admin login: attempt log + failed-attempt lockout
+  const LOGIN_FAIL_KEY = 'adminLoginFailures';
+  const LOGIN_LOG_KEY = 'adminLoginLog';
+  const LOGIN_MAX_ATTEMPTS = 5;
+  const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+  const LOGIN_LOCK_MS = 5 * 60 * 1000;
+
+  function getLoginFailures() {
+    try {
+      const list = JSON.parse(localStorage.getItem(LOGIN_FAIL_KEY) || '[]');
+      if (!Array.isArray(list)) return [];
+      const now = Date.now();
+      const recent = list.filter(t => typeof t === 'number' && now - t < LOGIN_WINDOW_MS);
+      localStorage.setItem(LOGIN_FAIL_KEY, JSON.stringify(recent));
+      return recent;
+    } catch (e) { return []; }
+  }
+
+  function recordLoginFailure() {
+    try {
+      const list = getLoginFailures();
+      list.push(Date.now());
+      localStorage.setItem(LOGIN_FAIL_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function clearLoginFailures() {
+    try { localStorage.removeItem(LOGIN_FAIL_KEY); } catch (e) {}
+  }
+
+  function getLoginLockRemainingMs() {
+    const fails = getLoginFailures();
+    if (fails.length < LOGIN_MAX_ATTEMPTS) return 0;
+    const oldestLocked = fails[fails.length - LOGIN_MAX_ATTEMPTS];
+    const remain = LOGIN_LOCK_MS - (Date.now() - oldestLocked);
+    return remain > 0 ? remain : 0;
+  }
+
+  function isLoginLocked() {
+    return getLoginLockRemainingMs() > 0;
+  }
+
+  function getLoginLog() {
+    try {
+      const log = JSON.parse(localStorage.getItem(LOGIN_LOG_KEY) || '[]');
+      return Array.isArray(log) ? log : [];
+    } catch (e) { return []; }
+  }
+
+  function appendLoginLog(ok) {
+    try {
+      const log = getLoginLog();
+      log.unshift({ t: Date.now(), ok: !!ok });
+      localStorage.setItem(LOGIN_LOG_KEY, JSON.stringify(log.slice(0, 200)));
+    } catch (e) {}
+  }
+
+  function clearLoginLog() {
+    try { localStorage.removeItem(LOGIN_LOG_KEY); } catch (e) {}
+  }
+
+  function formatLoginLockRemaining() {
+    const sec = Math.ceil(getLoginLockRemainingMs() / 1000);
+    const min = Math.floor(sec / 60);
+    const rem = sec % 60;
+    return `${min} 分 ${rem} 秒`;
+  }
+
   function handleAdminLogin() {
     const password = adminPasswordInput.value;
+
+    if (isLoginLocked()) {
+      showAdminMsg(`嘗試次數過多，已暫時鎖定。請 ${formatLoginLockRemaining()} 後再試。`, 'error');
+      return;
+    }
+
     adminMessage.style.display = 'none';
 
     if (password === 'admin') {
+      clearLoginFailures();
+      appendLoginLog(true);
       sessionStorage.setItem('admin_pwd', password);
       window.location.href = 'admin.html';
     } else {
-      showAdminMsg('密碼錯誤！請重新輸入。', 'error');
+      recordLoginFailure();
+      appendLoginLog(false);
+      const remaining = LOGIN_MAX_ATTEMPTS - getLoginFailures().length;
+      if (remaining > 0) {
+        showAdminMsg(`密碼錯誤！請重新輸入。（剩餘 ${remaining} 次嘗試機會）`, 'error');
+      } else {
+        showAdminMsg('密碼錯誤次數過多，已鎖定。請 5 分鐘後再試。', 'error');
+      }
     }
   }
 

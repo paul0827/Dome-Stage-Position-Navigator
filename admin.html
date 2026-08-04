@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>大巨蛋跑位演繹 — 後台管理系統</title>
+  <!-- 防護：禁止被嵌入 iframe、防止外連洩漏網址 -->
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'">
+  <meta name="referrer" content="no-referrer">
+  <script>
+    (function () {
+      if (window.top !== window.self) {
+        try { window.top.location.href = window.location.href; }
+        catch (e) { window.location.href = window.location.href; }
+      }
+    })();
+  </script>
   <!-- Google Fonts Outfit & Noto Sans TC -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -461,6 +472,15 @@
       gap: 10px;
     }
 
+    .alert-warning {
+      background-color: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
     /* Preview Table container */
     .preview-container {
       margin-top: 25px;
@@ -851,6 +871,9 @@
       <li class="menu-item" data-tab="tab-coords">
         <button><i class="fa-solid fa-map-location-dot"></i> 表演者座標維護</button>
       </li>
+      <li class="menu-item" data-tab="tab-security">
+        <button><i class="fa-solid fa-shield-halved"></i> 登入紀錄與防護</button>
+      </li>
     </ul>
 
     <div class="sidebar-footer">
@@ -1107,6 +1130,44 @@
           </div>
         </div>
       </section>
+
+      <!-- Security / Login Log Panel -->
+      <section id="tab-security" class="tab-panel">
+        <div id="securityAlertBanner" class="alert alert-warning" style="display: none;"></div>
+
+        <div class="action-bar">
+          <div class="search-filter-group">
+            <span style="font-size: 13px; color: var(--text-secondary);">
+              <i class="fa-solid fa-shield-halved" style="color: var(--color-amber); margin-right: 6px;"></i>
+              本機登入紀錄（儲存在此瀏覽器，僅記錄主頁的後台登入驗證）
+            </span>
+          </div>
+          <button class="btn-action" onclick="clearSecurityLog();">
+            <i class="fa-solid fa-eraser"></i> 清除紀錄
+          </button>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+          <div style="margin-bottom: 12px; font-size: 14px; color: var(--text-secondary);">
+            <i class="fa-solid fa-lock" style="color: var(--color-teal); margin-right: 6px;"></i>
+            登入鎖定狀態：<span id="securityLockInfo">檢查中...</span>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width: 160px;">時間</th>
+                  <th style="min-width: 90px;">結果</th>
+                  <th>狀態</th>
+                </tr>
+              </thead>
+              <tbody id="securityLogBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -1339,6 +1400,7 @@
           document.getElementById(tabId).classList.add('active');
           document.getElementById('topbarTitle').textContent = item.querySelector('button').textContent.trim();
           
+          if (tabId === 'tab-security') renderSecurityPanel();
           clearAlerts();
         });
       });
@@ -1349,6 +1411,7 @@
 
       // Load data from local JS files
       loadDashboardData();
+      renderSecurityPanel();
     });
 
     // Load Data from local JS variables
@@ -1709,6 +1772,107 @@
     function clearAlerts() {
       document.getElementById('globalSuccessAlert').style.display = 'none';
       document.getElementById('globalErrorAlert').style.display = 'none';
+    }
+
+    // ==========================================
+    // SECURITY: LOGIN LOG & LOCKOUT (local mode)
+    // ==========================================
+    const SEC_LOG_KEY = 'adminLoginLog';
+    const SEC_FAIL_KEY = 'adminLoginFailures';
+    const SEC_MAX_ATTEMPTS = 5;
+    const SEC_WINDOW_MS = 10 * 60 * 1000;
+    const SEC_LOCK_MS = 5 * 60 * 1000;
+
+    function secGetLoginLog() {
+      try {
+        const log = JSON.parse(localStorage.getItem(SEC_LOG_KEY) || '[]');
+        return Array.isArray(log) ? log : [];
+      } catch (e) { return []; }
+    }
+
+    function secGetFailures() {
+      try {
+        const list = JSON.parse(localStorage.getItem(SEC_FAIL_KEY) || '[]');
+        if (!Array.isArray(list)) return [];
+        const now = Date.now();
+        const recent = list.filter(t => typeof t === 'number' && now - t < SEC_WINDOW_MS);
+        localStorage.setItem(SEC_FAIL_KEY, JSON.stringify(recent));
+        return recent;
+      } catch (e) { return []; }
+    }
+
+    function secIsLocked() {
+      const fails = secGetFailures();
+      if (fails.length < SEC_MAX_ATTEMPTS) return false;
+      const oldest = fails[fails.length - SEC_MAX_ATTEMPTS];
+      return (SEC_LOCK_MS - (Date.now() - oldest)) > 0;
+    }
+
+    function secLockRemainingText() {
+      const fails = secGetFailures();
+      if (fails.length < SEC_MAX_ATTEMPTS) return '';
+      const oldest = fails[fails.length - SEC_MAX_ATTEMPTS];
+      const remain = Math.ceil((SEC_LOCK_MS - (Date.now() - oldest)) / 1000);
+      if (remain <= 0) return '';
+      return `${Math.floor(remain / 60)} 分 ${remain % 60} 秒`;
+    }
+
+    function secFormatTime(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function renderSecurityPanel() {
+      const log = secGetLoginLog();
+      const body = document.getElementById('securityLogBody');
+      const banner = document.getElementById('securityAlertBanner');
+      const lockInfo = document.getElementById('securityLockInfo');
+
+      let failedSinceLastSuccess = 0;
+      for (const entry of log) {
+        if (entry && entry.ok) break;
+        failedSinceLastSuccess++;
+      }
+
+      if (banner) {
+        if (failedSinceLastSuccess > 0) {
+          banner.style.display = 'flex';
+          banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px;"></i><div>自上次成功登入以來，共有 ${failedSinceLastSuccess} 次失敗的登入嘗試，請確認是否有人未經授權嘗試登入。</div>`;
+        } else {
+          banner.style.display = 'none';
+          banner.innerHTML = '';
+        }
+      }
+
+      if (lockInfo) {
+        const lockRemain = secLockRemainingText();
+        lockInfo.textContent = secIsLocked()
+          ? `已暫時鎖定（剩餘 ${lockRemain}）`
+          : '未鎖定';
+        lockInfo.style.color = secIsLocked() ? '#fda4af' : '#a7f3d0';
+      }
+
+      if (!body) return;
+      if (log.length === 0) {
+        body.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-secondary); padding: 20px;">尚無登入紀錄。</td></tr>`;
+        return;
+      }
+      body.innerHTML = log.map(entry => `
+        <tr>
+          <td>${secFormatTime(entry.t)}</td>
+          <td>${entry.ok ? '<span style="color:#10b981;">成功</span>' : '<span style="color:#f43f5e;">失敗</span>'}</td>
+          <td>${entry.ok ? '成功登入後台' : '密碼驗證失敗'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function clearSecurityLog() {
+      if (!confirm('確定要清除所有登入紀錄與鎖定狀態嗎？')) return;
+      try { localStorage.removeItem(SEC_LOG_KEY); } catch (e) {}
+      try { localStorage.removeItem(SEC_FAIL_KEY); } catch (e) {}
+      renderSecurityPanel();
+      showToast('success', '登入紀錄已清除');
     }
 
     // ==========================================

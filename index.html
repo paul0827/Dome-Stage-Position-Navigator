@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>大巨蛋演繹個人定位系統</title>
+  <!-- 防護：禁止被嵌入 iframe、防止外連洩漏網址 -->
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'">
+  <meta name="referrer" content="no-referrer">
+  <script>
+    (function () {
+      if (window.top !== window.self) {
+        try { window.top.location.href = window.location.href; }
+        catch (e) { window.location.href = window.location.href; }
+      }
+    })();
+  </script>
   <!-- Google Fonts: Outfit & Noto Sans TC for premium typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
