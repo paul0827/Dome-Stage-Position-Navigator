@@ -1156,9 +1156,9 @@
 
     // 2. Draw Grid Lines and Coordinates labels
     const drawGuides = showAlignmentGuides.checked;
-    for (let i = -MAX_GRID_COORD; i <= MAX_GRID_COORD; i += labelStep) {
-      const isCenter = (i === 0);
-      const ptZero = gridToSvg(i, i);
+    for (let i = -MAX_GRID_COORD; i <= MAX_GRID_COORD; i = Math.round((i + 0.6) * 10) / 10) {
+      const isCenter = (Math.abs(i) < 0.01);
+      const isLabel = (Math.abs(i - Math.round(i)) < 0.01);
 
       // Vertical line
       const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -1178,8 +1178,8 @@
       hLine.setAttribute('class', isCenter && drawGuides ? 'axis-line' : '');
       linesGroup.appendChild(hLine);
 
-      // Text labels for coordinates
-      if (!isCenter && !homeCoord.isText) {
+      // Text labels for coordinates (only at integer positions)
+      if (isLabel && !isCenter && !homeCoord.isText) {
         const roundedX = Math.round((homeCoord.x + i) * 10) / 10;
         const roundedY = Math.round(homeCoord.y - i);
 
