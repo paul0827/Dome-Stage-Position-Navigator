@@ -1429,8 +1429,8 @@
       }
       g.appendChild(img);
 
-      // Draw starting point overlay circle badge (with coordinate numbers)
-      if (pt.key === 'basic') {
+      // Draw coordinate overlay circle badge (起點、03米籮、09-1人文 show coordinate numbers)
+      if (pt.key === 'basic' || pt.key === 'miLuo' || pt.key === 'humanities1') {
         const centerColor = category.startsWith('B') ? 'var(--color-b-white)' : 'var(--color-a-white)';
         const overlayCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         overlayCircle.setAttribute('cx', pt.pos.x);
@@ -1439,7 +1439,8 @@
         overlayCircle.setAttribute('fill', centerColor);
         g.appendChild(overlayCircle);
 
-        const parts = fields.coordinate.split('-');
+        const coordVal = (pt.coord && pt.coord.text) ? pt.coord.text : fields.coordinate;
+        const parts = coordVal.split('-');
         if (parts.length === 2) {
           // Mid dividing line
           const midLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -2166,7 +2167,7 @@
 
     adminMessage.style.display = 'none';
 
-    if (password === 'admin') {
+    if (password === '0508') {
       clearLoginFailures();
       appendLoginLog(true);
       sessionStorage.setItem('admin_pwd', password);
