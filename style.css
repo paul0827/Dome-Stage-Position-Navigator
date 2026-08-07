@@ -1795,8 +1795,15 @@ body {
    ========================================================================== */
 @media (orientation: landscape) and (max-height: 600px) {
   /* 不鎖定整頁捲動：萬一某區塊超出畫面，頁面仍可捲動看到全部內容 */
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
   .app-screen {
     max-width: none;
+    min-height: 100vh;
+    min-height: 100dvh;
     padding: 6px 8px;
   }
 
