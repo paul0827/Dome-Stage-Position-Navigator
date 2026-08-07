@@ -648,12 +648,13 @@
       itemRow.className = `table-row formation-item step-row-${f.key}`;
       itemRow.dataset.index = idx;
       
-      // Sticker image or coordinate overlay circle (起點 & 人文)
+      // Sticker image or coordinate overlay circle (起點、米籮、人文)
       let stickerHtml = '';
-      if (f.key === 'basic') {
+      if (f.key === 'basic' || f.key === 'miLuo' || f.key === 'humanities1') {
         const isCatA = category.startsWith('A');
         const color = isCatA ? 'var(--color-a-white)' : 'var(--color-b-white)';
-        const parts = getPerformerFields(currentPerformer).coordinate.split('-');
+        const coordVal = coordStr || getPerformerFields(currentPerformer).coordinate;
+        const parts = coordVal.split('-');
         const topPart = parts[0] ? parts[0].padStart(2, '0') : '00';
         const bottomPart = parts[1] ? parts[1].padStart(2, '0') : '00';
         
