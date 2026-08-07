@@ -1794,20 +1794,10 @@ body {
    各區塊在畫面內獨立捲動，充分利用寬螢幕。
    ========================================================================== */
 @media (orientation: landscape) and (max-height: 600px) {
-  /* 鎖定整頁捲動，改由內部區塊各自捲動 */
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
-  }
-
+  /* 不鎖定整頁捲動：萬一某區塊超出畫面，頁面仍可捲動看到全部內容 */
   .app-screen {
-    height: 100vh;
-    height: 100dvh;
     max-width: none;
-    min-height: 0;
     padding: 6px 8px;
-    overflow: hidden;
   }
 
   .app-footer {
@@ -1879,9 +1869,6 @@ body {
 
   /* ---- 進入系統後的主面板 ---- */
   .app-dashboard {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
     gap: 8px;
   }
 
@@ -1928,19 +1915,15 @@ body {
     gap: 6px;
   }
 
-  /* ---- 主體：地圖 | 對照表 左右並排，填滿可用高度 ---- */
+  /* ---- 主體：地圖 | 對照表 左右並排 ---- */
   .dashboard-body {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) !important;
     gap: 10px;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
   }
 
   .dashboard-map-panel,
   .dashboard-list-panel {
-    min-height: 0;
-    overflow: hidden;
+    min-width: 0;
     padding: 12px;
   }
 
@@ -1965,16 +1948,18 @@ body {
     margin-top: 2px;
   }
 
-  /* 地圖填滿剩餘高度 */
+  /* 地圖：填滿左欄寬度，高度限制在畫面內（保留縮放/旋轉功能） */
   .dashboard-map-panel .map-container-wrapper {
-    flex: 1;
-    min-height: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   #localGridSvg {
     width: 100%;
-    height: 100%;
-    max-height: none;
+    max-height: calc(100vh - 200px);
+    max-height: calc(100dvh - 200px);
   }
 
   .map-zoom-controls {
@@ -2003,13 +1988,10 @@ body {
     display: none;
   }
 
-  /* 對照表：Part1 / Part2 並排，內部捲動 */
+  /* 對照表：Part1 / Part2 並排，內部捲動（限制高度避免頁面過長） */
   .formations-table-container-two-cols {
     grid-template-columns: 1fr 1fr !important;
     gap: 8px;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
     margin-bottom: 0;
   }
 
@@ -2030,10 +2012,10 @@ body {
   }
 
   .formations-list {
-    flex: 1;
-    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    max-height: calc(100vh - 200px);
+    max-height: calc(100dvh - 200px);
   }
 
   .formations-col-box .table-row {
@@ -2061,59 +2043,59 @@ body {
     flex-shrink: 0;
     gap: 6px;
     margin-top: 0;
-    padding: 10px 14px;
+    padding: 8px 14px;
   }
 
   .dashboard-lyrics-panel .active-formation-display {
     gap: 8px;
-    padding: 6px 12px;
+    padding: 4px 12px;
   }
 
   .active-formation-num {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .active-formation-title {
-    font-size: 14px;
+    font-size: 13px;
     min-width: 0;
   }
 
   .active-formation-coord {
-    font-size: 12px;
-    padding: 3px 8px;
+    font-size: 11.5px;
+    padding: 2px 8px;
   }
 
   .btn-step {
-    padding: 5px 10px;
-    font-size: 11.5px;
+    padding: 4px 9px;
+    font-size: 11px;
   }
 
   #activeFormMovement {
     margin-top: 2px !important;
     padding: 3px 12px !important;
-    font-size: 10.5px !important;
+    font-size: 10px !important;
     gap: 5px !important;
   }
 
   .lyrics-details-body {
     grid-template-columns: 1fr 1fr !important;
     gap: 8px;
-    max-height: 84px;
+    max-height: 56px;
     overflow-y: auto;
   }
 
   .lyrics-card, .action-card {
-    padding: 8px 12px;
-    gap: 6px;
+    padding: 5px 12px;
+    gap: 4px;
   }
 
   .lyrics-card h4, .action-card h4 {
-    font-size: 12px;
-    padding-bottom: 4px;
+    font-size: 11px;
+    padding-bottom: 3px;
   }
 
   .lyrics-text, .action-hints-flow {
-    max-height: 48px;
-    font-size: 12px;
+    max-height: 30px;
+    font-size: 11px;
   }
 }
