@@ -688,7 +688,7 @@
         
         stickerHtml = `
           <div class="list-sticker-preview">
-            <img src="images/stickers/thumbs/basic_${getEnglishCategory(category)}.png" alt="basic">
+            <img src="images/stickers/thumbs/basic_${getEnglishCategory(category)}.png" alt="basic" onerror="this.onerror=null; this.src='images/stickers/basic_${getEnglishCategory(category)}.png';">
             <div class="list-sticker-overlay" style="background-color: ${color};">
               <span style="border-bottom: 0.5px solid #fff; width: 80%; text-align: center; padding-bottom: 1px;">${topPart}</span>
               <span style="padding-top: 1px;">${bottomPart}</span>
@@ -698,7 +698,7 @@
       } else {
         stickerHtml = `
           <div class="list-sticker-preview">
-            <img src="images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png" alt="${displayType}">
+            <img src="images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png" alt="${displayType}" onerror="this.onerror=null; this.src='images/stickers/${displayType}_${getEnglishCategory(category)}.png';">
           </div>
         `;
       }
@@ -1444,8 +1444,13 @@
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       const displayType = getDisplayType(pt.key);
       const stickerSrc = `images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png`;
+      const stickerSrcFallback = `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
       img.setAttribute('href', stickerSrc);
       img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', stickerSrc);
+      img.addEventListener('error', () => {
+        img.setAttribute('href', stickerSrcFallback);
+        img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', stickerSrcFallback);
+      });
       img.setAttribute('x', pt.pos.x - size / 2);
       img.setAttribute('y', pt.pos.y - size / 2);
       img.setAttribute('width', size);
@@ -1826,6 +1831,13 @@
         if (!dataUrl) {
           try {
             dataUrl = await loadImageAsDataUrl(src);
+          } catch (error) {
+            console.warn(error);
+          }
+        }
+        if (!dataUrl && src.includes('/thumbs/')) {
+          try {
+            dataUrl = await loadImageAsDataUrl(src.replace('/thumbs/', '/'));
           } catch (error) {
             console.warn(error);
           }
