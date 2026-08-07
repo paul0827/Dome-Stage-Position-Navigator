@@ -577,9 +577,15 @@
       renderFormationsTable();
       selectFormation(0);
 
-      // 預先將貼紙圖轉為 dataURL 並快取（背景執行），讓第一次截圖就快
+      // 預先將貼紙圖轉為 dataURL 並快取（背景執行），讓第一次截圖就快，
+      // 同時直接把已渲染的貼紙換成 dataURL，避免部分貼紙因非同步載入而漏顯示。
       if (typeof buildStickerDataUrlMap === 'function') {
-        buildStickerDataUrlMap(currentPerformer.category || 'A白').catch(() => {});
+        buildStickerDataUrlMap(currentPerformer.category || 'A白')
+          .then((map) => {
+            currentStickerDataUrls = map;
+            applyStickerDataUrls(map);
+          })
+          .catch(() => {});
       }
       
     } else {
@@ -1581,6 +1587,9 @@
     if (isMainSvg) {
       updateSvgViewBox();
     }
+
+    // 若貼紙 dataURL 已準備好，直接套用，避免非同步載圖漏顯示
+    applyStickerDataUrls(currentStickerDataUrls);
   }
 
   // Update SVG zoom/rotation viewBox parameters
@@ -1857,6 +1866,26 @@
     });
 
     return stickerDataUrls;
+  }
+
+  // 貼紙 dataURL 就緒後，直接換掉已渲染的地圖/表格貼紙，不再依賴瀏覽器非同步載圖
+  let currentStickerDataUrls = null;
+  function applyStickerDataUrls(stickerDataUrls) {
+    if (!stickerDataUrls) return;
+    document.querySelectorAll('.list-sticker-preview img').forEach((img) => {
+      if (!img.src || img.src.startsWith('data:')) return;
+      const dataUrl = stickerDataUrls[img.src];
+      if (dataUrl) img.src = dataUrl;
+    });
+    document.querySelectorAll('.svg-sticker-image').forEach((img) => {
+      const cur = img.getAttribute('href') || img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+      if (!cur || cur.startsWith('data:')) return;
+      const dataUrl = stickerDataUrls[new URL(cur, window.location.href).href];
+      if (dataUrl) {
+        img.setAttribute('href', dataUrl);
+        img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+      }
+    });
   }
 
   async function loadImageAsDataUrl(src) {
