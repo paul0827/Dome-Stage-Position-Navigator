@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    Dome Position Navigator - App Logic
    ========================================================================== */
 
@@ -688,7 +688,7 @@
         
         stickerHtml = `
           <div class="list-sticker-preview">
-            <img src="images/stickers/basic_${getEnglishCategory(category)}.png" alt="basic">
+            <img src="images/stickers/thumbs/basic_${getEnglishCategory(category)}.png" alt="basic">
             <div class="list-sticker-overlay" style="background-color: ${color};">
               <span style="border-bottom: 0.5px solid #fff; width: 80%; text-align: center; padding-bottom: 1px;">${topPart}</span>
               <span style="padding-top: 1px;">${bottomPart}</span>
@@ -698,7 +698,7 @@
       } else {
         stickerHtml = `
           <div class="list-sticker-preview">
-            <img src="images/stickers/${displayType}_${getEnglishCategory(category)}.png" alt="${displayType}">
+            <img src="images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png" alt="${displayType}">
           </div>
         `;
       }
@@ -1443,7 +1443,7 @@
       // Draw the sticker PNG image
       const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
       const displayType = getDisplayType(pt.key);
-      const stickerSrc = `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
+      const stickerSrc = `images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png`;
       img.setAttribute('href', stickerSrc);
       img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', stickerSrc);
       img.setAttribute('x', pt.pos.x - size / 2);
@@ -1808,7 +1808,7 @@
     const uniqueStickerSources = Array.from(new Set(
       keyFormations.map((formation) => {
         const displayType = getDisplayType(formation.key);
-        return `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
+        return `images/stickers/thumbs/${displayType}_${getEnglishCategory(category)}.png`;
       })
     ));
 
