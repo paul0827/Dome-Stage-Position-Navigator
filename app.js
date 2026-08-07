@@ -110,14 +110,16 @@
 
   // Initial setup
   window.addEventListener('DOMContentLoaded', () => {
+    const sessionsBoot = window.SITE_SESSIONS_READY || Promise.resolve();
     const boot = window.SITE_BOOT_READY || Promise.resolve();
-    boot.then(() => {
+    const init = () => {
       initSessions();
       setupEventListeners();
-    }).catch(() => {
-      initSessions();
-      setupEventListeners();
-    });
+    };
+    // 場次資料（小檔）先載入 → 日期按鈕立即出現
+    sessionsBoot.then(() => initSessions()).catch(() => initSessions());
+    // 完整資料載入後 → 用 DAY_SESSIONS 校正一次並啟動全部功能
+    boot.then(init).catch(init);
   });
 
   // Mapped display sticker assets key mapping
@@ -170,12 +172,16 @@
   // Populate dynamic session keys
   function initSessions() {
     sessionSelectorGroup.innerHTML = '';
-    const sessions = (typeof DAY_SESSIONS !== 'undefined') ? DAY_SESSIONS : [
-      { key: '1112', label: '11/12(四)', date: '11/12(四)' },
-      { key: '1113', label: '11/13(五)', date: '11/13(五)' },
-      { key: '1114', label: '11/14(六)', date: '11/14(六)' },
-      { key: '1115', label: '11/15(日)', date: '11/15(日)' }
-    ];
+    const sessions = (typeof DAY_SESSIONS !== 'undefined' && DAY_SESSIONS.length)
+      ? DAY_SESSIONS
+      : (window.SITE_SESSIONS && window.SITE_SESSIONS.length)
+        ? window.SITE_SESSIONS
+        : [
+          { key: '1112', label: '11/12(四)', date: '11/12(四)' },
+          { key: '1113', label: '11/13(五)', date: '11/13(五)' },
+          { key: '1114', label: '11/14(六)', date: '11/14(六)' },
+          { key: '1115', label: '11/15(日)', date: '11/15(日)' }
+        ];
 
     sessions.forEach(s => {
       const btn = document.createElement('button');
@@ -195,6 +201,14 @@
       });
       sessionSelectorGroup.appendChild(btn);
     });
+
+    // 重新渲染後保留使用者已選的場次，並用最新名單同步名字對照
+    if (selectedSessionKey) {
+      sessionSelectorGroup.querySelectorAll('.session-btn').forEach(b => {
+        if (b.dataset.key === selectedSessionKey) b.classList.add('active');
+      });
+      loadDayNameMap(selectedSessionKey);
+    }
 
     // Populate admin selector options
     const adminSess = document.getElementById('adminDaySession');

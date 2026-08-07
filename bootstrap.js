@@ -116,6 +116,46 @@
     });
   }
 
+  // 場次（日期）快速載入：不等大資料檔，先讓「選擇日期場次」按鈕出現。
+  // 完整資料載入後（SITE_BOOT_READY），app.js 會以 DAY_SESSIONS 為準再同步一次。
+  window.SITE_SESSIONS_READY = new Promise(function (resolve) {
+    function ready(sessions) {
+      if (sessions && sessions.length) window.SITE_SESSIONS = sessions;
+      resolve();
+    }
+
+    function loadStaticSessions() {
+      return new Promise(function (res) {
+        var s = document.createElement('script');
+        s.src = 'sessions.js?v=' + DATA_VERSION;
+        s.onload = function () { res(window.SITE_SESSIONS || []); };
+        s.onerror = function () { res([]); };
+        document.head.appendChild(s);
+      });
+    }
+
+    function start() {
+      var token = getToken();
+      fetch('/api/site-sessions', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function (res) {
+        if (!res.ok) throw new Error('UNAUTHORIZED');
+        return res.json();
+      }).then(function (data) {
+        ready((data && data.daySessions) || []);
+      }).catch(function () {
+        // 沒有伺服器 → 直接載入 sessions.js
+        loadStaticSessions().then(ready);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
+  });
+
   window.SITE_BOOT_READY = new Promise(function (resolve) {
     function finish(data) {
       window.__applyDomeData(data);
