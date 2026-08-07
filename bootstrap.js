@@ -85,29 +85,34 @@
     'lyrics.js'
   ];
 
+  // 資料版本號（加速快取用）：每次更新上述資料檔內容後，請改這個數字/日期，
+  // 瀏覽器才會重新下載；未變更時直接使用瀏覽器快取，大幅加快再次載入速度。
+  var DATA_VERSION = '20260807';
+
   function loadStaticData() {
     return new Promise(function (resolve) {
-      var next = 0;
-      function step() {
-        if (next >= STATIC_DATA_FILES.length) {
-          window.__applyDomeData({
-            performers: typeof performersData !== 'undefined' ? performersData : [],
-            daySessions: typeof DAY_SESSIONS !== 'undefined' ? DAY_SESSIONS : [],
-            dayPerformers: typeof DAY_PERFORMERS !== 'undefined' ? DAY_PERFORMERS : {},
-            actionHints: typeof ACTION_HINTS_DATA !== 'undefined' ? ACTION_HINTS_DATA : {},
-            cardHints: typeof CARD_HINTS_DATA !== 'undefined' ? CARD_HINTS_DATA : {},
-            chantLyrics: typeof chantLyrics !== 'undefined' ? chantLyrics : {}
-          });
-          resolve();
-          return;
-        }
-        var s = document.createElement('script');
-        s.src = STATIC_DATA_FILES[next++] + '?v=' + Date.now();
-        s.onload = step;
-        s.onerror = step;
-        document.head.appendChild(s);
-      }
-      step();
+      var loaders = STATIC_DATA_FILES.map(function (file) {
+        return new Promise(function (res) {
+          var s = document.createElement('script');
+          s.src = file + '?v=' + DATA_VERSION;
+          s.onload = res;
+          s.onerror = res;
+          document.head.appendChild(s);
+        });
+      });
+
+      // 平行載入（同時下載，不再依序排隊）
+      Promise.all(loaders).then(function () {
+        window.__applyDomeData({
+          performers: typeof performersData !== 'undefined' ? performersData : [],
+          daySessions: typeof DAY_SESSIONS !== 'undefined' ? DAY_SESSIONS : [],
+          dayPerformers: typeof DAY_PERFORMERS !== 'undefined' ? DAY_PERFORMERS : {},
+          actionHints: typeof ACTION_HINTS_DATA !== 'undefined' ? ACTION_HINTS_DATA : {},
+          cardHints: typeof CARD_HINTS_DATA !== 'undefined' ? CARD_HINTS_DATA : {},
+          chantLyrics: typeof chantLyrics !== 'undefined' ? chantLyrics : {}
+        });
+        resolve();
+      });
     });
   }
 

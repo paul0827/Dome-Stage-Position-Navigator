@@ -21,6 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- FontAwesome for professional icons -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css?v=2.5.2">
 </head>
@@ -376,10 +377,10 @@
   </div>
 
   <!-- Load Bootstrap (site gate + authenticated data loading) -->
-  <script src="bootstrap.js?v=2.5.0"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script>
-    document.write('<script src="app.js?v=' + Date.now() + '"><\/script>');
-  </script>
+  <script src="bootstrap.js?v=3.0.0"></script>
+  <!-- html2canvas / app.js 皆以 defer 載入：不阻擋首頁渲染，且可與主程式平行下載。
+       修改 app.js 後請記得同步更新下方 ?v= 版本號，否則瀏覽器會使用快取。 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="app.js?v=3.0.0" defer></script>
 </body>
 </html>
