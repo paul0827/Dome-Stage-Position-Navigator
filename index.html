@@ -16,13 +16,15 @@
       }
     })();
   </script>
-  <!-- Google Fonts: Outfit & Noto Sans TC for premium typography -->
+  <!-- Google Fonts: Outfit & Noto Sans TC (非阻斷載入：不擋頁面與按鈕渲染) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- FontAwesome for professional icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <!-- FontAwesome (非阻斷載入) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
   <link rel="stylesheet" href="style.css?v=2.5.2">
 </head>
 <body>
@@ -376,6 +378,8 @@
     </footer>
   </div>
 
+  <!-- 場次（日期）同步載入：極小檔，讓「選擇日期場次」按鈕零延遲立即顯示 -->
+  <script src="sessions.js?v=3.1.0"></script>
   <!-- Load Bootstrap (site gate + authenticated data loading) -->
   <script src="bootstrap.js?v=3.1.0"></script>
   <!-- html2canvas / app.js 皆以 defer 載入：不阻擋首頁渲染，且可與主程式平行下載。

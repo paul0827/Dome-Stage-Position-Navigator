@@ -109,16 +109,18 @@
   let MAX_GRID_COORD = 10;
 
   // Initial setup
+  // 場次按鈕立即渲染：sessions.js 已由 index.html 同步載入，
+  // 不需等待 DOMContentLoaded / 字型 / 大資料檔。app.js 以 defer 執行，
+  // 此時 DOM 已解析完成，元素必然存在。
+  initSessions();
+
   window.addEventListener('DOMContentLoaded', () => {
-    const sessionsBoot = window.SITE_SESSIONS_READY || Promise.resolve();
     const boot = window.SITE_BOOT_READY || Promise.resolve();
     const init = () => {
       initSessions();
       setupEventListeners();
     };
-    // 場次資料（小檔）先載入 → 日期按鈕立即出現
-    sessionsBoot.then(() => initSessions()).catch(() => initSessions());
-    // 完整資料載入後 → 用 DAY_SESSIONS 校正一次並啟動全部功能
+    // 完整資料載入後 → 用 DAY_SESSIONS 校正場次並啟動全部功能
     boot.then(init).catch(init);
   });
 
@@ -172,6 +174,12 @@
   // Populate dynamic session keys
   function initSessions() {
     sessionSelectorGroup.innerHTML = '';
+
+    // 沿用 sessions.js 搶先渲染時使用者已選的場次
+    if (window.SITE_SESSION_KEY && !selectedSessionKey) {
+      selectedSessionKey = window.SITE_SESSION_KEY;
+    }
+
     const sessions = (typeof DAY_SESSIONS !== 'undefined' && DAY_SESSIONS.length)
       ? DAY_SESSIONS
       : (window.SITE_SESSIONS && window.SITE_SESSIONS.length)
@@ -209,6 +217,7 @@
       });
       loadDayNameMap(selectedSessionKey);
     }
+    validateSearchParams();
 
     // Populate admin selector options
     const adminSess = document.getElementById('adminDaySession');
