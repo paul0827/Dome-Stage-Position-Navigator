@@ -567,6 +567,11 @@
       // Render formations list & select starting step
       renderFormationsTable();
       selectFormation(0);
+
+      // 預先將貼紙圖轉為 dataURL 並快取（背景執行），讓第一次截圖就快
+      if (typeof buildStickerDataUrlMap === 'function') {
+        buildStickerDataUrlMap(currentPerformer.category || 'A白').catch(() => {});
+      }
       
     } else {
       alert('找不到該跑位人員！請確認輸入的身分證座標是否正確。');
@@ -1785,39 +1790,50 @@
     });
   }
 
+  // 貼紙 dataURL 快取：同一位表演者的類別不變，轉換結果可重複使用，
+  // 避免每次截圖都重新轉換/下載貼紙圖。
+  const stickerDataUrlCache = new Map();
+
   async function buildStickerDataUrlMap(category) {
     const stickerDataUrls = {};
-    const uniqueStickerSources = new Set(
+    const uniqueStickerSources = Array.from(new Set(
       keyFormations.map((formation) => {
         const displayType = getDisplayType(formation.key);
         return `images/stickers/${displayType}_${getEnglishCategory(category)}.png`;
       })
-    );
+    ));
 
-    for (const src of uniqueStickerSources) {
-      let dataUrl = '';
-      const renderedSticker = getRenderedSticker(src);
-      if (renderedSticker) {
-        try {
-          dataUrl = imageToDataUrl(renderedSticker);
-        } catch (error) {
-          console.warn(error);
-        }
-      }
-
+    const convertOne = async (src) => {
+      let dataUrl = stickerDataUrlCache.get(src);
       if (!dataUrl) {
-        try {
-          dataUrl = await loadImageAsDataUrl(src);
-        } catch (error) {
-          console.warn(error);
+        const renderedSticker = getRenderedSticker(src);
+        if (renderedSticker) {
+          try {
+            dataUrl = imageToDataUrl(renderedSticker);
+          } catch (error) {
+            console.warn(error);
+          }
         }
+        if (!dataUrl) {
+          try {
+            dataUrl = await loadImageAsDataUrl(src);
+          } catch (error) {
+            console.warn(error);
+          }
+        }
+        if (dataUrl) stickerDataUrlCache.set(src, dataUrl);
       }
+      return { src, dataUrl: dataUrl || '' };
+    };
 
+    // 平行轉換（不再逐一等待）
+    const results = await Promise.all(uniqueStickerSources.map(convertOne));
+    results.forEach(({ src, dataUrl }) => {
       if (dataUrl) {
         stickerDataUrls[src] = dataUrl;
         stickerDataUrls[new URL(src, window.location.href).href] = dataUrl;
       }
-    }
+    });
 
     return stickerDataUrls;
   }
@@ -2053,7 +2069,7 @@
       const target = document.querySelector('.dashboard-body') || appDashboard;
       const canvas = await window.html2canvas(target, {
         backgroundColor: '#0b0f19',
-        scale: Math.min(2, window.devicePixelRatio || 1.5),
+        scale: Math.min(1.5, window.devicePixelRatio || 1.5),
         useCORS: true,
         allowTaint: false,
         logging: false,
